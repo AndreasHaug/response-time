@@ -197,10 +197,49 @@ def filter_detaillevel_and_type(val) -> bool:
         val["detaljnivå"] != "Vegtrase")
 
 
+def load_points(link_collection: collection.Collection, points_collection: collection.Collection):
+
+
+    def get_node(val, i, length):
+        if i == 0:
+            return val["startnode"]
+        elif i == length - 1:
+            return val["endnode"]
+        return None
+    
+    
+    points_collection.drop()
+    for a in link_collection.find({}, {
+        "reference" : 1,
+        "geometry" : 1,
+        "startnode" : 1,
+        "endnode" : 1
+    }):
+        
+        coordinates_length = len(a["geometry"]["coordinates"])
+        for i, b in enumerate(a["geometry"]["coordinates"]):
+            node = get_node(a, i, coordinates_length)
+            t = {
+                "link" : a["reference"],
+                "geometry" : {
+                    "type" : "Point",
+                    "coordinates" : b,
+                },
+                "node" : node,
+                "linestring_index" : i,
+                "linestring_length" : coordinates_length
+            }
+            points_collection.insert_one(t)
+                    
+    points_collection.create_index([("geometry", pymongo.GEOSPHERE)])
+
+
+
 def load_graph(raw_link_collection: collection.Collection,
                link_collection: collection.Collection,
                speedlimit_collection: collection.Collection,
-               node_collection: collection.Collection):
+               node_collection: collection.Collection,
+               points_collection: collection.Collection):
     
     print("loading links")
     link_collection.drop()
@@ -211,6 +250,11 @@ def load_graph(raw_link_collection: collection.Collection,
     node_collection.drop()
     load_nodes(link_collection, node_collection)
     print("loaded nodes")
+
+    print("loading points")    
+    load_points(link_collection, points_collection)
+    print("loaded points")
+    
 
 
 def parse_args():
@@ -224,6 +268,7 @@ def parse_args():
     parser.add_argument("link_collection_name", type = str, default = "links", help = "name of collection storing road links")
     parser.add_argument("speedlimit_collection_name", type = str, default = "speedlimits", help = "name of collection storing extracted speedlimit data")
     parser.add_argument("node_collection_name", type = str, default = "nodes", help = "name of collection to store nodes")
+    parser.add_argument("points_collection_name", type = str, default = "points", help = "name of collection to store points")
     
     return parser.parse_args()    
 
@@ -243,7 +288,8 @@ def main():
     link_collection = db[args.link_collection_name]
     speedlimit_collection = db[args.speedlimit_collection_name]
     node_collection = db[args.node_collection_name]
+    points_collection = db[args.points_collection_name]
     
-    load_graph(raw_link_collection, link_collection, speedlimit_collection, node_collection)
+    load_graph(raw_link_collection, link_collection, speedlimit_collection, node_collection, points_collection)
     
 main()
