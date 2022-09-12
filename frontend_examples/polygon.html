@@ -1,0 +1,91 @@
+r<!-- Exemple drawing polygon in a Leaflet map -->
+
+<!DOCTYPE html>
+
+<script>
+  let polygon = [
+  [
+    59.94057241681109,
+    10.758025166161179
+  ],
+  [
+    59.94187477482479,
+    10.753993403873125
+  ],
+  [
+    59.94689765067455,
+    10.756701270380125
+  ],
+  [
+    59.948875878859845,
+    10.758424187197011
+  ],
+  [
+    59.94901618925976,
+    10.758845167377483
+  ],
+  [
+    59.949446235715,
+    10.760195460641796
+  ],
+  [
+    59.94983871196779,
+    10.764744430861242
+  ],
+  [
+    59.94661745166349,
+    10.7683106392046
+  ],
+  [
+    59.94611143978642,
+    10.768177361965783
+  ],
+  [
+    59.94272514998305,
+    10.763402914279789
+  ],
+  [
+    59.940888537228574,
+    10.760789249231834
+  ],
+  [
+    59.940233249501,
+    10.759725494323131
+  ],
+  [
+    59.94057241681109,
+    10.758025166161179
+  ]
+]
+  </script>
+
+<html>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+	integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+	crossorigin=""/>
+
+  <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+	  integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+	  crossorigin=""></script>
+
+  <style type="text/css">
+    #map { height: 500px; width:1000px; }
+  </style>
+
+  <div id="map">
+    <script>
+      var map = L.map('map').setView([59.94516366621788,10.760151211174714], 15.4);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	  maxZoom: 19,
+	  attribution: '© OpenStreetMap'
+      }).addTo(map);
+      L.polygon(polygon, {color : 'blue'}).addTo(map);
+    </script>
+  </div>
+
+
+
+
+
+  
+</html>
