@@ -1,16 +1,15 @@
 use std::collections::{HashSet, BinaryHeap, HashMap};
-use geo::{MultiLineString, Point};
-use geo::{Coordinate, ConcaveHull, convex_hull, ConvexHull, MultiPoint, Geometry};
+use geo::{MultiLineString};
+use geo::ConvexHull;
 use serde::Serialize;
 use std::error::Error;
 use crate::closest::Closest;
 use crate::graph::{Graph, Node, LineStringSegment, NodeCost, RoadLink};
 use crate::search_result::{MultiLineStringResult, PolygonResult, SearchResult};
 use crate::graph::Haversine;
-use rs_concaveman::{concaveman, location_trait::LocationTrait};
+// use rs_concaveman::{concaveman, location_trait::LocationTrait};
 
 pub struct Search<'a> {
-    // start: [f64; 2],
     start: Start,
     utils: SearchUtils,
     pub linestrings: Vec<Vec<[f64; 2]>>,
@@ -31,36 +30,6 @@ pub struct Start {
     r#type : String,
     coordinates: [f64; 2],
 }
-// #[derive(Debug)]
-// pub struct PointRep {
-//     x: f64,
-//     y: f64,
-// }
-
-// impl PointRep {
-//     fn from_linestrings(linestrings: &Vec<Vec<[f64; 2]>>) -> Vec<PointRep> {
-// 	let l = linestrings.iter().flatten();
-// 	let mut r = Vec::new();
-// 	for a in l {
-// 	    r.push(PointRep {
-// 		x: a[1],
-// 		y: a[0],
-// 	    })
-// 	}
-// 	r
-//     }
-// }
-
-
-// impl LocationTrait for PointRep {
-//     fn get_x(&self) -> f64 {
-//         self.x
-//     }
-
-//     fn get_y(&self) -> f64 {
-//         self.y
-//     }
-// }
 
 
 impl<'a> Search<'a> {
@@ -82,6 +51,7 @@ impl<'a> Search<'a> {
 	    crate::search_result::SearchResultProperty::MultilinestringResult(MultiLineStringResult::new(self.linestrings))
 	)
     }
+
     
     pub fn as_polygon(self) -> SearchResult {
 
@@ -104,68 +74,82 @@ impl<'a> Search<'a> {
 	)
     }
 
-    async fn closest_link(&self) -> Option<&Closest> {
+    async fn closest(&self) -> Option<&Closest> {
 	self.closest_link.as_ref()
-    }
-    
-    pub async fn do_search(graph: &'a Graph, closest: Closest, cost: i32) -> Result<Search, Box<dyn Error>>{
-	let cost_seconds = cost * 60;
-	let link = graph.get_link(closest.link());
-	let closest_index = closest.linestring_index;
-	
-	if closest_index == 0 {
-	    Ok(Search::new(Start::new(closest.geometry.coordinates),
-			   graph,
-			   closest,
-			   cost_seconds).await.do_search_from_node(&link.startnode).await)
-	}
-	else if closest_index == closest.linestring_length {
-	    Ok(Search::new(Start::new(closest.geometry.coordinates),
-			   graph,
-			   closest,
-			   cost_seconds).await.do_search_from_node(&link.endnode).await)
-	}
-	else {
-	    Ok(Search::new(Start::new(closest.geometry.coordinates),
-			   graph,
-			   closest, cost_seconds).await.do_search_on_link(closest_index as usize).await)
-	}
-    }
-    
-    pub async fn do_search_from_node(mut self, nodeid: &str) -> Search<'a> {
-	let startnodeid = nodeid.to_string();
-	println!("startnode: {}", startnodeid);
-	self.utils.add_cost(startnodeid.to_owned(), 0).await;
-	self.explore_node(&startnodeid).await;
-	while let Some(s) = self.utils.queue.pop() {
-	    self.explore_node(&s.node).await;
-	}
-	self
     }
 
     
-    pub async fn do_search_on_link(mut self, index: usize) -> Search<'a> {
-	let link = self.graph.unwrap().get_link((self.closest_link().await).unwrap().link());
+    pub async fn do_search(graph: &'a Graph, closest: Closest, cost: i32) -> Result<Search, Box<dyn Error>>{
+	let cost_seconds = cost * 60;
+	let node: bool = closest.node.is_some();
 	
-	let dist_to_startnode = LineStringSegment::new(&link.geometry.coordinates[0..index]).haversine_dist();
-	let dist_to_endnode = LineStringSegment::new(&link
-						     .geometry
-						     .coordinates[index..link.geometry.coordinates.len()])
-	    .haversine_dist();
-	self.linestrings.push(link.geometry.coordinates[0..index + 1].to_vec());
-	self.linestrings.push(link
-			      .geometry
-			      .coordinates[index..link.geometry.coordinates.len()].to_vec());
-	
-	self.utils.add_cost(link.startnode.to_owned(), dist_to_startnode).await;
-	self.utils.add_cost(link.endnode.to_owned(), dist_to_endnode).await;
-	self.utils.add_cost(link.startnode.to_owned(), 0).await;
-	self.utils.add_cost(link.endnode.to_owned(), 0).await;
-	// println!("{:?}", self.utils.queue);
+	let mut search = Search::new(Start::new(closest.geometry.coordinates),
+				     graph,
+				     closest,
+				     cost_seconds).await;
+	if node {
+	    search.do_search_from_node().await;
+	}
+	else {
+	    search.do_search_on_link().await;
+	}
+	Ok(search)
+    }
+    
+    pub async fn do_search_from_node(&mut self) {
+	let startnodeid = self.closest().await.unwrap().node().unwrap();
+	self.utils.add_cost(startnodeid.to_owned(), 0).await;
 	while let Some(s) = self.utils.queue.pop() {
 	    self.explore_node(&s.node).await;
 	}
-	self
+    }
+
+    
+    pub async fn do_search_on_link(&mut self) {
+	let link = self.graph.unwrap().get_link((self.closest().await).unwrap().link());
+	let index = self.closest().await.unwrap().linestring_index as usize;
+	
+	if link.lanes.iter().any(|n| *n as i32 % 2 != 0) || link.lanes.is_empty() {
+	    let dist_to_endnode = LineStringSegment::new(&link
+							 .geometry
+							 .coordinates[index..link.geometry.coordinates.len()]).haversine_dist();
+	    
+	    let meters_per_second: f64 = f64::round(link.get_estimated_driving_speed() * 1000.00 / 60.00 / 60.00);
+	    let driving_time = f64::round(dist_to_endnode as f64 / meters_per_second  * link.driving_time_add_factor()) as i32;
+	    
+	    
+	    if driving_time > self.cost {
+		let sublinestring: Vec<[f64; 2]> = link.sub_linestring_from_to(self.cost, 0, "startnode", index, link.geometry.coordinates.len());
+		self.linestrings.push(sublinestring);
+	    }
+	    else {			    
+		self.linestrings.push(link.geometry.coordinates[index..link.geometry.coordinates.len()].to_vec());
+		self.utils.add_cost(link.endnode.to_owned(), driving_time).await;
+	    }
+	}
+	
+	if link.lanes.iter().any(|n| *n as i32 % 2 == 0) || link.lanes.is_empty() {
+	    let dist_to_startnode = LineStringSegment::new(&link.geometry.coordinates[0..index]).haversine_dist();
+
+	    let meters_per_second: f64 = f64::round(link.get_estimated_driving_speed() * 1000.00 / 60.00 / 60.00);
+	    let driving_time = f64::round(dist_to_startnode as f64 / meters_per_second  * link.driving_time_add_factor()) as i32;
+	    
+	    if driving_time > self.cost {
+		let sublinestring: Vec<[f64; 2]> = link.sub_linestring_from_to(self.cost, 0, "endnode", 0, index + 1);
+		self.linestrings.push(sublinestring);
+	    }
+	    else {
+		self.linestrings.push(link
+				      .geometry
+				      .coordinates[0..index + 1].to_vec());
+		
+		self.utils.add_cost(link.startnode.to_owned(), driving_time).await;
+	    }
+	}				
+		
+	while let Some(s) = self.utils.queue.pop() {
+	    self.explore_node(&s.node).await;
+	}
     }
 
     
@@ -180,49 +164,43 @@ impl<'a> Search<'a> {
 	let origin_node_cost: i32 = self.utils.get_cost_value(origin_node_id).await.unwrap();
 	let graph = self.graph.unwrap();
 	let origin_node: &Node = graph.get_node(origin_node_id);
+	
+	
 	for linkid in self.get_node_outlinks(origin_node).await {
 	    let link: &RoadLink = graph.get_link(&linkid);
+	    let node_type;
+	    if origin_node.id == link.startnode {
+		node_type = "startnode";
+	    }
+	    else {
+		node_type = "endnode";
+	    }
+
+
 	    let driving_time = link.driving_time_secs();
 	    let destination_nodeid = link.get_destination_nodeid(origin_node);
-
+	    let destination_cost = origin_node_cost + driving_time;
+	    if destination_cost > self.cost {
+		let sublinestring = link.sub_linestring(self.cost, origin_node_cost, node_type);
+		if !sublinestring.is_empty() {
+		    self.linestrings.push(sublinestring);
+		}
+		continue;
+	    }
+	    else {
+		self.linestrings.push(link.geometry.coordinates.clone());
+	    }
+	    
 	    if !self.utils.is_explored(&destination_nodeid).await {
-		let new_possible_cost = origin_node_cost + driving_time;
 		match self.utils.get_cost_value(&destination_nodeid).await {
 		    Some(s) => self.utils.update_to_min_cost(&destination_nodeid,
 							    s,
 							    origin_node_cost + driving_time).await,
-		    None => self.utils.add_cost(destination_nodeid.to_owned(),
+		    None => self.utils.add_cost(destination_nodeid,
 					       origin_node_cost + driving_time).await,
 		}
-
-		let destination_cost = self.utils.get_cost_value(&destination_nodeid).await.unwrap();
-		if destination_cost <= self.cost {
-		    self.linestrings.push(link.geometry.coordinates.clone());
-		}
-		// else {
-		    
-		// }
-
 		self.utils.set_explored(origin_node_id).await;
 	    }
-	    
-	    // if origin_node_cost + driving_time + 30 >= self.cost {
-	    // 	continue;
-	    // }
-	    // else {
-	    // 	self.linestrings.push(link.geometry.coordinates.clone());
-	    // }
-	    
-	    // if !self.utils.is_explored(&destination_nodeid).await {
-	    // 	match self.utils.get_cost_value(&destination_nodeid).await {
-	    // 	    Some(s) => self.utils.update_to_min_cost(&destination_nodeid,
-	    // 						    s,
-	    // 						    origin_node_cost + driving_time).await,
-	    // 	    None => self.utils.add_cost(destination_nodeid,
-	    // 				       origin_node_cost + driving_time).await,
-	    // 	}
-	    // 	self.utils.set_explored(origin_node_id).await;
-	    // }
 	}
     }
 }
@@ -277,7 +255,6 @@ impl Start {
 	Start {
 	    r#type: String::from("Point"),
 	    coordinates,
-	}
-	
+	}	
     }
 }
