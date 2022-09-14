@@ -36,7 +36,7 @@ async fn polygon(graph: &State<Graph>,
 		 cost: i32) -> Option<Json<SearchResult>> {
     
     let s = Instant::now();
-
+    println!("max cost: {}", cost);
     let res = Some(Json(graph
 			.search(closest(lat, lon).await.unwrap(), cost)
 			.await
@@ -56,7 +56,6 @@ async fn closest(lat: f64, lng: f64) -> Result<Closest, reqwest::Error> {
 
 #[get("/?<lat>&<lon>&<cost>")]
 async fn multilinestring(graph: &State<Graph>,
-			 client: &State<Client>,
 			 lat: f64,
 			 lon: f64,
 			 cost: i32) -> Option<Json<SearchResult>> {
