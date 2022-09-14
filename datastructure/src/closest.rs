@@ -64,6 +64,14 @@ impl Closest {
     pub fn linestring_length(&self) -> usize {
         self.linestring_length
     }
+
+    pub fn node(&self) -> Option<String> {
+	// &self.node
+	match &self.node {
+	    Some(s) => Some(s.to_owned()),
+	    None => None,
+	}
+    }
 }
 // finn en referanse
 // fn haversine_distance(p1: [f64; 2], p2: [f64; 2]) {}
