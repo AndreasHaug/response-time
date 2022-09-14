@@ -1,12 +1,10 @@
 use std::cmp::Ordering;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::vec::Vec;
 use std::error::Error;
 use crate::closest::Closest;
 use crate::search::Search;
 use serde::{Serialize, Deserialize};
-// use geomorph::utm;
-use crate::mongodb_interaction::closest_link;
 
 
 #[derive(Debug)]
@@ -18,24 +16,6 @@ pub struct Graph {
 
 const EARTH_RADIUS: f64 = 6371.088;
 
-fn haversine_point_distance(point1: &[f64; 2], point2: &[f64; 2]) -> i32 {
-    let lat1 = point1[1];
-    let lon1 = point1[0];
-
-    let lat2 = point2[1];
-    let lon2 = point1[0];
-
-    let dlat = (lat2 - lat1).to_radians();
-    let dlon = (lon2- lon1).to_radians();
-    let lat1 = lat1.to_radians();
-    let lat2 = lat2.to_radians();
-
-    let a = (dlat / 2.0).sin().powi(2) + (dlon / 2.0).sin().powi(2) * lat1.cos() * lat2.cos();
-    let c = 2.0 * (a.sqrt().asin());
-    (EARTH_RADIUS * c).round() as i32
-    
-}
-
 
 impl Graph {
 
@@ -46,19 +26,19 @@ impl Graph {
     }
     
     pub async fn search(&self, closest: Closest, cost: i32) -> Result<Search, Box<dyn Error>> {
-	// let closest = closest_link(lat, lon).await?.ok_or("")?;
-	
-	let link = self.get_link(closest.link());
 	Search::do_search(&self, closest, cost).await
     }
 
+    
     pub fn get_node(&self, id: &str) -> &Node {
 	self.nodes.get(id).unwrap()
     }
 
+    
     pub fn get_link(&self, reference: &str) -> &RoadLink {
 	self.links.get(reference).unwrap()
     }
+
     
     pub async fn get_node_outlinks(&self, node: &Node) -> Vec<String> {
 	node.links.iter()
@@ -75,6 +55,7 @@ impl Graph {
 	    .collect()
     }
 }
+
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NodeCost {
@@ -189,14 +170,14 @@ impl<'a> LineStringSegment<'a> {
 }
 
 
-struct PointPair {
+pub struct PointPair {
     first: [f64; 2],
     last: [f64; 2],
 }
 
 
 impl PointPair {
-    fn new(first: [f64; 2], last: [f64; 2]) -> Self {
+    pub fn new(first: [f64; 2], last: [f64; 2]) -> Self {
 	PointPair { first , last }
     }
 }
@@ -206,22 +187,22 @@ pub trait Haversine {
     fn haversine_dist(&self) -> i32;
 }
 
+
 impl<'a> Haversine for LineStringSegment<'a> {
     fn haversine_dist(&self) -> i32 {
 	let mut tot = 0;
 	for a in 0..self.coordinates.len() - 1 {
 	    let extra = PointPair::new(self.coordinates[a], self.coordinates[a + 1]).haversine_dist();
-	    // println!("extra: {}", extra);
 	    tot += extra;
 	}
 	tot
     }
 }
 
+
 impl Haversine for PointPair {
 
     fn haversine_dist(&self) -> i32 {
-
 	let p1_lat = f64::to_radians(self.first[0]);
 	let p1_lon = f64::to_radians(self.first[1]);
 
@@ -236,6 +217,7 @@ impl Haversine for PointPair {
 
 	let c = 2.0 * f64::asin(f64::sqrt(a));
 	let earth_radius_m = EARTH_RADIUS * 1000.00;
+	
 	f64::round(c * earth_radius_m) as i32
     }
 }
@@ -247,20 +229,7 @@ impl Node {
 }
 
 
-impl LineString {
-    fn new(coords: &[[f64; 2]]) -> Self {
-	Self {
-	    r#type : "LineString".to_string(),
-	    coordinates: coords.to_vec(),
-	}
-    }
-}
-
-
 impl RoadLink {
-    // pub fn utm33_to_lat_lon(&mut self) {
-	// self.geometry.utm33_to_lat_lon();
-    // }
 
     pub fn startnode(&self) -> &String {
 	&self.startnode
@@ -282,6 +251,64 @@ impl RoadLink {
 	}
     }
 
+    
+    pub fn sub_linestring(&self, max_secs: i32, current_secs: i32, node_type: &str) -> Vec<[f64; 2]> {
+	let mut dist = 0;
+	let mut secs = current_secs;
+	let mut substring: Vec<[f64; 2]> = Vec::new();
+	let coordinates = self.geometry.coordinates.to_owned();
+
+	let coordinates = match node_type {
+	    "startnode" => coordinates,
+	    _ => coordinates.into_iter().rev().collect::<Vec<[f64; 2]>>(),
+	};
+	
+	for a in 0..coordinates.len() - 1 {
+	    if secs > max_secs {
+		break;
+	    }
+	    let pair = PointPair::new(coordinates[a], coordinates[a + 1]);
+	    let added_dist = pair.haversine_dist();
+	    dist += added_dist;
+	    secs = self.driving_time_secs_on_given_length(dist);
+	    substring.push(coordinates[a]);
+	}
+	substring
+    }
+
+    
+    pub fn sub_linestring_from_to(&self,
+				  max_secs: i32,
+				  current_secs: i32,
+				  node_type: &str,
+				  from: usize,
+				  to: usize) -> Vec<[f64; 2]> {
+	
+	let mut dist = 0;
+	let mut secs = current_secs;
+	let mut substring: Vec<[f64; 2]> = Vec::new();
+	let coordinates = self.geometry.coordinates.to_owned();
+
+	let coordinates = match node_type {
+	    "startnode" => coordinates,
+	    _ => coordinates.into_iter().rev().collect::<Vec<[f64; 2]>>(),
+	};
+
+	for a in from..to {
+	    if secs > max_secs {
+		break;
+	    }
+	    let pair = PointPair::new(coordinates[a], coordinates[a + 1]);
+	    let added_dist = pair.haversine_dist();
+	    dist += added_dist;
+	    // println!("dist: {}", dist);
+	    secs = self.driving_time_secs_on_given_length(dist);
+	    substring.push(coordinates[a]);
+	}
+	substring
+    }
+
+
     #[inline]
     pub fn speedlimits_values(&self) -> impl Iterator<Item = i32> + '_ {
 	self.speedlimits.iter().map(|s| s.get_value())
@@ -294,6 +321,7 @@ impl RoadLink {
 	    _ => (self.speedlimits_values().sum::<i32>() / self.speedlimits.len() as i32) as f64,
 	}
     }
+
     
     #[inline]
     pub fn driving_time_secs(&self) -> i32 {
@@ -301,8 +329,16 @@ impl RoadLink {
 	f64::round(self.length as f64 / meters_per_second  * self.driving_time_add_factor()) as i32
     }
 
+    
+    #[inline]
+    pub fn driving_time_secs_on_given_length(&self, length: i32) -> i32 {
+	let meters_per_second: f64 = f64::round(self.get_estimated_driving_speed() * 1000.00 / 60.00 / 60.00);
+	f64::round(length as f64 / meters_per_second  * self.driving_time_add_factor()) as i32
+    }
 
-    fn driving_time_add_factor(&self) -> f64 {
+
+    #[inline]
+    pub fn driving_time_add_factor(&self) -> f64 {
 	let avg_km_per_h = self.avg_km_per_h();
 	if avg_km_per_h <= 40.00 {
 	    return 1.5
@@ -331,8 +367,9 @@ impl RoadLink {
 	1.1
     }
 
-    
-    fn get_estimated_driving_speed(&self) -> f64 {
+
+    #[inline]
+    pub fn get_estimated_driving_speed(&self) -> f64 {
 	let avg_km_per_h = self.avg_km_per_h();
 	if avg_km_per_h <= 40.00 {
 	    return avg_km_per_h + 5.00;
