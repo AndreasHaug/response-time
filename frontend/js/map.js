@@ -1,5 +1,5 @@
-var map = L.map('map').setView([59.94, 10.75], 13.0);
-// var map = L.map('map').setView([67.283333, 14.383333], 13.0);
+// var map = L.map('map').setView([59.94, 10.75], 13.0);
+var map = L.map('map').setView([67.283333, 14.383333], 13.0);
 
 
 
@@ -19,14 +19,14 @@ let polygon;
 				       latlng.lat +
 				       '&lon=' +
 				       latlng.lng +
-				      '&cost=10');
+				      '&cost=2');
 
 	      
 	      // let multilinestring_response = await fetch('/multilinestring?lat=' +
-				       // latlng.lat +
-				       // '&lon=' +
-				       // latlng.lng +
-				      // '&cost=20');
+	      // 			       latlng.lat +
+	      // 			       '&lon=' +
+	      // 			       latlng.lng +
+	      // 			      '&cost=10');
 
 	      
 	      lines.forEach((l) => map.removeLayer(l))
@@ -38,13 +38,9 @@ let polygon;
 	      }
 
 	      
-	      // let linestringjson = await multilinestring_response.json();
 	      let poljson = await polygon_response.json();
+	      // let linjson = await multilinestring_response.json();
 
-	      // let circleLatLng = [linestringjson["start"]["lat"], linestringjson["start"]["lng"]];
-	      // let circleLatLng = linestringjson["start"]["coordinates"]
-	      // let circleLatLng = poljson["start"]["coordinates"]
-	      
 	      let circleOptions = {
 		  radius: 4,
 		  color: 'blue',
@@ -52,17 +48,10 @@ let polygon;
 		  fillOpacity: 1
 	      }
 	      
-	      // for (let a in linestringjson["coordinates"]) {
-		  // lines.push(L.polyline(linestringjson["coordinates"][a], {color: 'red'}).addTo(map));
+	      // for (let a in linjson["results"]["MultilinestringResult"]["coordinates"]) {
+		  // lines.push(L.polyline(linjson["results"]["MultilinestringResult"]["coordinates"][a], {color: 'red'}).addTo(map));
 	      // }
-	      
-	      // console.log(poljson["coordinates"])
-	      // for (let a in s["coordinates"]) {
-	      // console.log(poljson["results"]["PolygonResult"][""])
 	      polygon = L.polygon(poljson["results"]["PolygonResult"]["coordinates"], {color: 'blue'}).addTo(map);
-	      
-	      // }
-	      
 	      marker = L.circleMarker(poljson["start"]["coordinates"].reverse(), circleOptions).addTo(map);
 
 
