@@ -1,12 +1,18 @@
 use std::fmt::Debug;
 use serde::Serialize;
-use crate::{graph::NodeCost, search::Start};
+use crate::{graph::NodeCost};
 
 #[derive(Serialize, Debug)]
 pub enum SearchResultProperty {
     MultilinestringResult(MultiLineStringResult),
     PolygonResult(PolygonResult),
     DebugResult(DebugResult),
+}
+
+#[derive(Serialize, Debug)]
+pub struct Start {
+    pub r#type : String,
+    pub coordinates: [f64; 2],
 }
 
 #[derive(Serialize, Debug)]

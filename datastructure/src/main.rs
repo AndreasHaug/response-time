@@ -29,16 +29,16 @@ async fn map() -> Option<NamedFile> {
     NamedFile::open(Path::new("../frontend/js/map.js")).await.ok()
 }
 
-#[get("/?<lat>&<lon>&<cost>")]
+#[get("/?<lat>&<lng>&<cost>")]
 async fn polygon(graph: &State<Graph>,
 		 lat: f64,
-		 lon: f64,
+		 lng: f64,
 		 cost: i32) -> Option<Json<SearchResult>> {
     
     let s = Instant::now();
     println!("max cost: {}", cost);
     let res = Some(Json(graph
-			.search(closest(lat, lon).await.unwrap(), cost)
+			.search(closest(lat, lng).await.unwrap(), cost)
 			.await
 			.unwrap()
 			.as_polygon()));
@@ -54,16 +54,16 @@ async fn closest(lat: f64, lng: f64) -> Result<Closest, reqwest::Error> {
 }
 
 
-#[get("/?<lat>&<lon>&<cost>")]
+#[get("/?<lat>&<lng>&<cost>")]
 async fn multilinestring(graph: &State<Graph>,
 			 lat: f64,
-			 lon: f64,
+			 lng: f64,
 			 cost: i32) -> Option<Json<SearchResult>> {
     
     let s = Instant::now();
     let res = Some(Json(
         graph
-            .search(closest(lat, lon).await.unwrap(), cost)
+            .search(closest(lat, lng).await.unwrap(), cost)
             .await
             .unwrap()
             .as_multilinestring()));
