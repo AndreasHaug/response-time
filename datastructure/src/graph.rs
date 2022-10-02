@@ -204,16 +204,16 @@ impl Haversine for PointPair {
 
     fn haversine_dist(&self) -> i32 {
 	let p1_lat = f64::to_radians(self.first[0]);
-	let p1_lon = f64::to_radians(self.first[1]);
+	let p1_lng = f64::to_radians(self.first[1]);
 
 	let p2_lat = f64::to_radians(self.last[0]);
-	let p2_lon = f64::to_radians(self.last[1]);
+	let p2_lng = f64::to_radians(self.last[1]);
 
-	let dlon = p2_lon - p1_lon;
+	let dlng = p2_lng - p1_lng;
 	let dlat = p2_lat - p1_lat;
 
 	let a = f64::powi(f64::sin(dlat / 2.0), 2) +
-	    f64::cos(p1_lat) * f64::cos(p2_lat) * f64::powi(f64::sin(dlon / 2.0), 2);
+	    f64::cos(p1_lat) * f64::cos(p2_lat) * f64::powi(f64::sin(dlng / 2.0), 2);
 
 	let c = 2.0 * f64::asin(f64::sqrt(a));
 	let earth_radius_m = EARTH_RADIUS * 1000.00;
