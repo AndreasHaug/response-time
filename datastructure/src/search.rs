@@ -5,49 +5,52 @@ use serde::Serialize;
 use std::error::Error;
 use crate::closest::Closest;
 use crate::graph::{Graph, Node, LineStringSegment, NodeCost, RoadLink};
-use crate::search_result::{MultiLineStringResult, PolygonResult, SearchResult};
+use crate::search_result::{MultiLineStringResult, PolygonResult, SearchResult, Start};
 use crate::graph::Haversine;
 // use rs_concaveman::{concaveman, location_trait::LocationTrait};
 
 pub struct Search<'a> {
-    start: Start,
+    // start: Start,
     utils: SearchUtils,
     pub linestrings: Vec<Vec<[f64; 2]>>,
-    closest_link: Option<Closest>,
-    graph: Option<&'a Graph>,
+    closest_link: Closest,
+    graph: &'a Graph,
     cost: i32,
 }
 
 
 pub struct SearchUtils {
     explored: HashSet<String>,
+    explored_links: HashSet<String>,
     queue: BinaryHeap<NodeCost>,
     node_costs: HashMap<String, NodeCost>,
 }
 
-#[derive(Serialize, Debug)]
-pub struct Start {
-    r#type : String,
-    coordinates: [f64; 2],
-}
+// #[derive(Serialize, Debug)]
+// pub struct Start {
+//     r#type : String,
+//     coordinates: [f64; 2],
+// }
 
 
 impl<'a> Search<'a> {
     
-    pub async fn new(start: Start, graph: &'a Graph, closest: Closest, cost: i32) -> Search<'a> {
+    pub async fn new(graph: &'a Graph, closest: Closest, cost: i32) -> Search<'a> {
 	Self {
-	    start,
+	    // start,
 	    utils: SearchUtils::new().await,
 	    linestrings: Vec::new(),
-	    closest_link: Some(closest),
-	    graph: Some(graph),
+	    // closest_link: Some(closest),
+	    closest_link: closest,
+	    graph: graph,
 	    cost,	   
 	}
     }
     
     pub fn as_multilinestring(self) -> SearchResult {
 	SearchResult::new(
-	    self.start,
+	    // self.start,
+	   Start::new(self.closest_link.geometry.coordinates),
 	    crate::search_result::SearchResultProperty::MultilinestringResult(MultiLineStringResult::new(self.linestrings))
 	)
     }
@@ -69,13 +72,14 @@ impl<'a> Search<'a> {
 		.collect::<Vec<[f64; 2]>>());
 
 	SearchResult::new(
-	    self.start,
+	    // self.start,
+	    Start::new(self.closest_link.geometry.coordinates),
 	    crate::search_result::SearchResultProperty::PolygonResult(polygon)
 	)
     }
 
-    async fn closest(&self) -> Option<&Closest> {
-	self.closest_link.as_ref()
+    async fn closest(&self) -> &Closest {
+	&self.closest_link
     }
 
     
@@ -83,7 +87,8 @@ impl<'a> Search<'a> {
 	let cost_seconds = cost * 60;
 	let node: bool = closest.node.is_some();
 	
-	let mut search = Search::new(Start::new(closest.geometry.coordinates),
+	let mut search = Search::new(
+	    // Start::new(closest.geometry.coordinates),
 				     graph,
 				     closest,
 				     cost_seconds).await;
@@ -97,7 +102,7 @@ impl<'a> Search<'a> {
     }
     
     pub async fn do_search_from_node(&mut self) {
-	let startnodeid = self.closest().await.unwrap().node().unwrap();
+	let startnodeid = self.closest().await.node().unwrap();
 	self.utils.add_cost(startnodeid.to_owned(), 0).await;
 	while let Some(s) = self.utils.queue.pop() {
 	    self.explore_node(&s.node).await;
@@ -106,8 +111,8 @@ impl<'a> Search<'a> {
 
     
     pub async fn do_search_on_link(&mut self) {
-	let link = self.graph.unwrap().get_link((self.closest().await).unwrap().link());
-	let index = self.closest().await.unwrap().linestring_index as usize;
+	let link = self.graph.get_link((self.closest().await).link());
+	let index = self.closest().await.linestring_index as usize;
 	
 	if link.lanes.iter().any(|n| *n as i32 % 2 != 0) || link.lanes.is_empty() {
 	    let dist_to_endnode = LineStringSegment::new(&link
@@ -155,30 +160,40 @@ impl<'a> Search<'a> {
     
     #[inline]
     async fn get_node_outlinks(&self, node: &Node) -> Vec<String> {
-	self.graph.unwrap().get_node_outlinks(node).await
+	self.graph.get_node_outlinks(node).await
     }
 
 
     #[inline]
     async fn explore_node(&mut self, origin_node_id: &str) {
+	if self.utils.is_explored(origin_node_id).await {
+	    return;
+	}
 	let origin_node_cost: i32 = self.utils.get_cost_value(origin_node_id).await.unwrap();
-	let graph = self.graph.unwrap();
+	let graph = self.graph;
 	let origin_node: &Node = graph.get_node(origin_node_id);
+
+	
 	
 	
 	for linkid in self.get_node_outlinks(origin_node).await {
+
 	    let link: &RoadLink = graph.get_link(&linkid);
 	    let node_type;
 	    if origin_node.id == link.startnode {
 		node_type = "startnode";
 	    }
-	    else {
+	    else if origin_node.id == link.endnode {
 		node_type = "endnode";
+	    }
+	    else {
+		panic!("Origin node  {}", origin_node_id);
 	    }
 
 
 	    let driving_time = link.driving_time_secs();
 	    let destination_nodeid = link.get_destination_nodeid(origin_node);
+	 if !self.utils.is_link_explored(&link.reference).await {
 	    let destination_cost = origin_node_cost + driving_time;
 	    if destination_cost > self.cost {
 		let sublinestring = link.sub_linestring(self.cost, origin_node_cost, node_type);
@@ -189,8 +204,10 @@ impl<'a> Search<'a> {
 	    }
 	    else {
 		self.linestrings.push(link.geometry.coordinates.clone());
+		self.utils.set_link_explored(&link.reference).await;
+		
 	    }
-	    
+	}
 	    if !self.utils.is_explored(&destination_nodeid).await {
 		match self.utils.get_cost_value(&destination_nodeid).await {
 		    Some(s) => self.utils.update_to_min_cost(&destination_nodeid,
@@ -210,6 +227,7 @@ impl SearchUtils {
     async fn new() -> Self {
 	Self {
     	    explored: HashSet::new(),
+	    explored_links: HashSet::new(),
 	    queue: BinaryHeap::new(),
 	    node_costs: HashMap::new(),
 	}
@@ -221,8 +239,17 @@ impl SearchUtils {
     }
 
     
+    async fn set_link_explored(&mut self, link_reference: &str) {
+	self.explored_links.insert(link_reference.to_owned());
+    }
+
+    
     async fn is_explored(&self, nodeid: &str) -> bool {
 	self.explored.get(nodeid).is_some()
+    }
+
+    async fn is_link_explored(&self, link_reference: &str) -> bool {
+	self.explored_links.get(link_reference).is_some()
     }
 
     
@@ -242,10 +269,16 @@ impl SearchUtils {
     }
 
     
-    async fn update_to_min_cost(&mut self, nodeid: &str, cost1: i32, cost2: i32) {
+    async fn update_to_min_cost(&mut self, nodeid: &str, cost: i32, possible_new_cost: i32) {
 	self.node_costs.get_mut(nodeid)
 	    .unwrap()
-	    .update_cost(cost1, cost2);
+	    .update_cost(cost, possible_new_cost);
+
+	// self.cost = std::cmp::min(cost, possible_new_cost);
+	if possible_new_cost < cost {
+	    self.queue.push(NodeCost::new(nodeid.to_owned(), cost));
+	}
+	
     }
 }
 
