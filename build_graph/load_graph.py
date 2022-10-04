@@ -4,8 +4,8 @@ from pymongo import collection
 import utm
 
 
-def utm_to_latlon(north: float, east: float) -> list[float]:
-    latitude, longitude = utm.to_latlon(east, north, 33, northern = True, strict = False)
+def utm_to_latlng(north: float, east: float) -> list[float]:
+    latitude, longitude = utm.to_latlng(east, north, 33, northern = True, strict = False)
     return [longitude, latitude]
     
 
@@ -90,14 +90,14 @@ def extract_lane_numbers(lanes: list[str]) -> list[int]:
 # end extract_lane_numbers
             
               
-def utm33_to_latlon(north, east) -> list[float]:
+def utm33_to_latlng(north, east) -> list[float]:
     latitude, longitude = utm.to_latlon(east, north, 33, northern = True, strict = False)
     return [longitude, latitude]
 
 
 def geo_json_points(val) -> list[list[float]]:
     start = 13 if val.startswith("LINESTRING Z") else 11
-    return list(map(lambda x: utm33_to_latlon(float(x[1]), float(x[0])),
+    return list(map(lambda x: utm33_to_latlng(float(x[1]), float(x[0])),
                     map(lambda s: s.split(" "), val[start::].split(", "))))
 
 
