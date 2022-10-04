@@ -107,9 +107,11 @@ def geometry_as_geojson_latlng(val) -> dict:
     }
         
 
-def find_link_speedlimits_range(link_min_pos, link_max_pos, limit_min_pos, limit_max_pos):
-    link_speedlimit_min = max(limit_min_pos, link_min_pos)
-    link_speedlimit_max = min(limit_max_pos, link_max_pos)
+def find_link_speedlimits_range(link_startpos, link_endpos, limit_min_pos, limit_max_pos):
+    if limit_max_pos <= link_startpos or limit_min_pos >= link_endpos:
+        return None
+    link_speedlimit_min = max(limit_min_pos, link_startpos)
+    link_speedlimit_max = min(limit_max_pos, link_endpos)
     return link_speedlimit_min, link_speedlimit_max
     
 
@@ -123,15 +125,78 @@ def attach_speedlimits(roadlink, speedlimit_collection):
         link_startpos = roadlink["superstedfesting"]["startposisjon"]
         link_endpos = roadlink["superstedfesting"]["sluttposisjon"]
 
-    link_min_pos = min(link_startpos, link_endpos)
-    link_max_pos = max(link_startpos, link_endpos)
+    # link_startpos = min(link_startpos, link_endpos)
+    # link_endpos = max(link_startpos, link_endpos)
+
+    #start større eller lik lstart, og start mindre enn lend
+    #eller
+    #end mindre eller lik lend, og end større enn lstart
 
     speedlimits = speedlimit_collection.find({ "sequenze_id" : seq_id,
-                                               "$and" : [
-                                                   { "startposition" : { "$lt" : link_max_pos }},
-                                                   { "endposition" : { "$gt" : link_min_pos}}
+                                               
+                                               "$or" : [
+                                                   {
+                                                       "$and" : [
+                                                           {"startposition" :  {"$gte" : link_startpos}},                             
+                                                           {"startposition" : {"$lt" : link_endpos}}
+                                                       ],
+
+                                                   },
+                                                   {
+                                                       "$and" : [
+                                                           {"endposition" : { "$gte" : link_startpos }},
+                                                           {"endposition" : { "$lt" : link_endpos }}
+                                                       ]
+                                                   },                                                   
+                                                   {
+                                                       "$and" : [
+                                                           {"startposition" : { "$lte" : link_startpos }},
+                                                           {"startposition" : { "$gt" : link_endpos }}
+                                                       ]
+                                                   },                                                   
+                                                   {
+                                                       "$and" : [
+                                                           {"endposition" : { "$lte" : link_endpos }},
+                                                           {"endposition" : { "$gt" : link_startpos}}
+                                                       ]
+                                                   },
+
+
+
+
+
                                                ]
-                                              })
+                                             })
+                                              #      {
+                                              #          "startposition" : {
+                                              #              "$and" : [
+                                              #                  { "$gte" : link_startpos },
+                                              #                  { "$lt" : link_endpos }
+                                              #              ]
+                                              #          }
+                                              #      },
+                                              #      {
+                                              #          "endposition" :
+                                              #          {
+                                              #              "$and" : [
+                                              #                  { "$lte" : link_endpos }, {"$gt" : link_startpos }
+                                              #              ]
+                                              #          }
+                                              #      }
+                                              #  ]
+                                              # })
+
+    
+    
+    # speedlimits = speedlimit_collection.find({ "sequenze_id" : seq_id,
+    #                                            "$and" : [
+    #                                                { "startposition" : { "$lt" : link_endpos }},
+    #                                                { "endposition" : { "$gt" : link_startpos}}
+    #                                            ]
+    #                                           })
+
+    
+    
     link_speedlimits = []
     for s in speedlimits:
         value = s["speedlimit"]
@@ -140,7 +205,9 @@ def attach_speedlimits(roadlink, speedlimit_collection):
         limit_min_pos = min(limit_start_pos, limit_end_pos)
         limit_max_pos = max(limit_start_pos, limit_end_pos)
 
-        limit_range = find_link_speedlimits_range(link_min_pos, link_max_pos, limit_min_pos, limit_max_pos)
+        limit_range = find_link_speedlimits_range(link_startpos, link_endpos, limit_min_pos, limit_max_pos)
+        if limit_range == None:
+            continue
         if roadlink.get("superstedfesting") == None:
             speedlimit = { "id" : s["id"],
                            "startposition" : limit_range[0],
