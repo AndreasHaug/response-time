@@ -12,6 +12,7 @@ import utm
 
 def load_data(collection: collection.Collection, filepath: str):
     collection.drop()
+    collection.drop_indexes()
     for name in os.listdir(filepath):
         file = open(os.path.join(filepath, name))
         val = json.load(open(os.path.join(filepath, name)))
@@ -54,6 +55,9 @@ def main():
     speedlimit_collection: collection.Collection = db[args.db_rawspeedlimits_collection_name]
     load_data(rawlink_collection, args.rawlink_file_path)
     load_data(speedlimit_collection, args.rawspeedlimits_file_path)
-    
+
+
+    rawlink_collection.create_index("startnode")
+    rawlink_collection.create_index("sluttnode")
 
 main()
