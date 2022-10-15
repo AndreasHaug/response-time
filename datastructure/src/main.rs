@@ -24,10 +24,30 @@ async fn index() -> Option<NamedFile> {
         .ok()
 }
 
+
+#[get("/")]
+async fn styles() -> Option<NamedFile> {
+    NamedFile::open(Path::new("../frontend/css/styles.css")).await.ok()
+}
+
+
+#[get("/")]
+async fn normalize() -> Option<NamedFile> {
+    NamedFile::open(Path::new("../frontend/css/normalize.css")).await.ok()
+}
+
+
 #[get("/")]
 async fn map() -> Option<NamedFile> {
     NamedFile::open(Path::new("../frontend/js/map.js")).await.ok()
 }
+
+
+#[get("/")]
+async fn navigationbar() -> Option<NamedFile> {
+    NamedFile::open(Path::new("../frontend/js/navigationbar.js")).await.ok()
+}
+
 
 #[get("/?<lat>&<lng>&<cost>")]
 async fn polygon(graph: &State<Graph>,
@@ -86,6 +106,9 @@ async fn launch() -> _ {
                 .unwrap(),
         )
         .mount("/", routes![index])
+	.mount("/styles", routes![styles])
+        .mount("/normalize", routes![normalize])
+	.mount("/navigationbar", routes![navigationbar])
         .mount("/map", routes![map])
         .mount("/polygon", routes![polygon])
         .mount("/multilinestring", routes![multilinestring])
