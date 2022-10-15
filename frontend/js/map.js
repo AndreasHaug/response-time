@@ -180,6 +180,10 @@ function resetMarker() {
 
 
 async function getPolygonResponse() {
+    if (latlng === undefined || latlng === null) {
+	return;
+    }
+    
     let polygon_response = await fetch('/polygon?lat=' +
 				       latlng.lat +
 				       '&lng=' +
