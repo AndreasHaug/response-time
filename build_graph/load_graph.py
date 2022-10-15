@@ -125,77 +125,7 @@ def attach_speedlimits(roadlink, speedlimit_collection):
         link_startpos = roadlink["superstedfesting"]["startposisjon"]
         link_endpos = roadlink["superstedfesting"]["sluttposisjon"]
 
-    # link_startpos = min(link_startpos, link_endpos)
-    # link_endpos = max(link_startpos, link_endpos)
-
-    #start større eller lik lstart, og start mindre enn lend
-    #eller
-    #end mindre eller lik lend, og end større enn lstart
-
-    speedlimits = speedlimit_collection.find({ "sequenze_id" : seq_id,
-                                               
-                                               "$or" : [
-                                                   {
-                                                       "$and" : [
-                                                           {"startposition" :  {"$gte" : link_startpos}},                             
-                                                           {"startposition" : {"$lt" : link_endpos}}
-                                                       ],
-
-                                                   },
-                                                   {
-                                                       "$and" : [
-                                                           {"endposition" : { "$gte" : link_startpos }},
-                                                           {"endposition" : { "$lt" : link_endpos }}
-                                                       ]
-                                                   },                                                   
-                                                   {
-                                                       "$and" : [
-                                                           {"startposition" : { "$lte" : link_startpos }},
-                                                           {"startposition" : { "$gt" : link_endpos }}
-                                                       ]
-                                                   },                                                   
-                                                   {
-                                                       "$and" : [
-                                                           {"endposition" : { "$lte" : link_endpos }},
-                                                           {"endposition" : { "$gt" : link_startpos}}
-                                                       ]
-                                                   },
-
-
-
-
-
-                                               ]
-                                             })
-                                              #      {
-                                              #          "startposition" : {
-                                              #              "$and" : [
-                                              #                  { "$gte" : link_startpos },
-                                              #                  { "$lt" : link_endpos }
-                                              #              ]
-                                              #          }
-                                              #      },
-                                              #      {
-                                              #          "endposition" :
-                                              #          {
-                                              #              "$and" : [
-                                              #                  { "$lte" : link_endpos }, {"$gt" : link_startpos }
-                                              #              ]
-                                              #          }
-                                              #      }
-                                              #  ]
-                                              # })
-
-    
-    
-    # speedlimits = speedlimit_collection.find({ "sequenze_id" : seq_id,
-    #                                            "$and" : [
-    #                                                { "startposition" : { "$lt" : link_endpos }},
-    #                                                { "endposition" : { "$gt" : link_startpos}}
-    #                                            ]
-    #                                           })
-
-    
+    speedlimits = speedlimit_collection.find({ "sequenze_id" : seq_id })
     
     link_speedlimits = []
     for s in speedlimits:
