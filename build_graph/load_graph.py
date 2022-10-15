@@ -205,7 +205,6 @@ def load_points(link_collection: collection.Collection, points_collection: colle
         return None
     
     
-    points_collection.drop()
     for a in link_collection.find({}, {
         "reference" : 1,
         "geometry" : 1,
@@ -240,15 +239,20 @@ def load_graph(raw_link_collection: collection.Collection,
     
     print("loading links")
     link_collection.drop()
+    link_collection.drop_indexes()
     load_roadlinks_from_raw(raw_link_collection, link_collection, speedlimit_collection)
     print("loaded links")
 
+    
     print("loading nodes")
     node_collection.drop()
+    node_collection.drop_indexes()
     load_nodes(link_collection, node_collection)
     print("loaded nodes")
 
-    print("loading points")    
+    print("loading points")
+    points_collection.drop()
+    points_collection.drop_indexes()
     load_points(link_collection, points_collection)
     print("loaded points")
     
