@@ -99,6 +99,7 @@ async def closest(lat: float, lng: float):
         },
         { "_id" : 0 }
     )
+    res["geometry"]["coordinates"].reverse()
     return res
 
 

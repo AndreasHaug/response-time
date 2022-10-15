@@ -88,8 +88,7 @@ async function drawExisting() {
     }    
 }
 
-async function drawPolygon() {
-    
+async function drawPolygon() {    
     if (latlng === undefined) {
 	return;
     }
@@ -98,9 +97,7 @@ async function drawPolygon() {
     }
     polygon = L.polygon(polJson["results"]["PolygonResult"]["coordinates"],
 			{color: 'blue'}).addTo(map);
-    console.log("pol drawing marker ");
-    console.log(polJson["start"])
-    marker.push(L.circleMarker([polJson["start"]["coordinates"][1], polJson["start"]["coordinates"][0]] ,
+    marker.push(L.circleMarker(polJson["start"]["coordinates"],
 			       circleOptions).addTo(map));
 }
 
@@ -116,9 +113,7 @@ async function drawLinestrings() {
 	lines.push(L.polyline(linJson["results"]["MultilinestringResult"]["coordinates"][a],
 			      {color: 'red'}).addTo(map));
     }
-    console.log("lin drawing marker")
-    console.log(linJson["start"])
-    marker.push(L.circleMarker([linJson["start"]["coordinates"][1], linJson["start"]["coordinates"][0]],
+    marker.push(L.circleMarker(linJson["start"]["coordinates"],
 			       circleOptions).addTo(map));
 }
 
