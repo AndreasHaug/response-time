@@ -1,61 +1,208 @@
-// var map = L.map('map').setView([59.94, 10.75], 13.0);
-var map = L.map('map').setView([67.283333, 14.383333], 13.0);
+var map = L.map('map').setView([59.94, 10.75], 13.0);
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
 
 
+const drawType = {
+    P : 1,
+    LS : 2,
+    B : 3,
+};
 
-// var map = L.map('map').setView([69.64527778, 18.99277778], 13.0); 
-      // L.tileLayer('https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=X8lQYMMJ147bLoWMQqfE').addTo(map);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-      
+
+let circleOptions = {
+    radius: 4,
+    color: 'blue',
+    fillColor: 'blue',
+    fillOpacity: 1
+}
+
+
+let drawTypeValue = drawType.P;
 let lines = [];
 let polygon;
-      let marker;
-      map.on("click", (e) => {
-	  let latlng = e.latlng;
-	  console.log(latlng)
-	  async function doSearch() {
+let marker = [];
+let latlng;
+let cost = 3;
 
-	      let polygon_response = await fetch('/polygon?lat=' +
+let polJson = null;
+let linJson = null;
+
+
+map.on("click", (e) => {
+    async function start() {
+	latlng = e.latlng;
+	// resetAll();
+	await draw();
+    }
+    start();
+})
+
+
+async function setPolygon() {
+    if (drawTypeValue === drawType.P) {
+	return;
+    }    
+    drawTypeValue = drawType.P;
+    drawExisting();
+}
+
+
+async function setLinestrings() {
+    if (drawTypeValue === drawType.LS) {
+	return;
+    }
+    drawTypeValue = drawType.LS;
+    drawExisting();
+}
+
+
+async function setBoth() {
+    if (drawTypeValue === drawType.B) {
+	return;
+    }    
+    drawTypeValue = drawType.B;
+    drawExisting();
+}
+
+
+async function draw() {
+    resetAll();
+    drawExisting();
+}
+
+
+async function drawExisting() {
+    resetFigures();
+    if (drawTypeValue === drawType.P) {
+	drawPolygon();
+    }
+    else if (drawTypeValue === drawType.LS) {
+	drawLinestrings();
+    }
+    else {
+	drawBoth();
+    }    
+}
+
+async function drawPolygon() {
+    
+    if (latlng === undefined) {
+	return;
+    }
+    if (polJson === undefined || polJson === null) {
+	await getPolygonResponse();
+    }
+    polygon = L.polygon(polJson["results"]["PolygonResult"]["coordinates"],
+			{color: 'blue'}).addTo(map);
+    console.log("pol drawing marker ");
+    console.log(polJson["start"])
+    marker.push(L.circleMarker([polJson["start"]["coordinates"][1], polJson["start"]["coordinates"][0]] ,
+			       circleOptions).addTo(map));
+}
+
+
+async function drawLinestrings() {
+    if (latlng === undefined) {
+	return;
+    }
+    if (linJson === undefined || linJson === null) {
+	await getLinestringResponse();
+    }
+    for (let a in linJson["results"]["MultilinestringResult"]["coordinates"]) {
+	lines.push(L.polyline(linJson["results"]["MultilinestringResult"]["coordinates"][a],
+			      {color: 'red'}).addTo(map));
+    }
+    console.log("lin drawing marker")
+    console.log(linJson["start"])
+    marker.push(L.circleMarker([linJson["start"]["coordinates"][1], linJson["start"]["coordinates"][0]],
+			       circleOptions).addTo(map));
+}
+
+
+function drawBoth() {
+    drawLinestrings();
+    drawPolygon();
+}
+
+
+function resetData() {
+    resetPolygonData();
+    resetLinesData();    
+}
+
+
+function resetFigures() {
+    resetPolygonFigure();
+    resetLinesFigure();    
+}
+
+
+function resetAll() {
+    resetFigures();
+    resetData();
+}
+
+
+function resetPolygonData() {
+    if (polygon !== undefined && polygon !== null) {
+	polJson = null;
+	polygon = null;
+    }
+}
+
+function resetPolygonFigure() {
+    resetMarker();
+    if (polygon !== undefined && polygon !== null) {
+	map.removeLayer(polygon)
+    }    
+}
+
+
+function resetLinesData() {
+    linJson = null;
+    lines = [];
+}
+
+
+function resetLinesFigure() {
+    resetMarker();
+    lines.forEach((l) => map.removeLayer(l));
+}
+
+function resetMarker() {
+    marker.forEach((m) => map.removeLayer(m));
+    marker = [];
+}
+
+
+async function getPolygonResponse() {
+    let polygon_response = await fetch('/polygon?lat=' +
 				       latlng.lat +
-				       '&lon=' +
+				       '&lng=' +
 				       latlng.lng +
-				      '&cost=2');
+				       '&cost=' +
+				       cost);
 
-	      
-	      // let multilinestring_response = await fetch('/multilinestring?lat=' +
-	      // 			       latlng.lat +
-	      // 			       '&lon=' +
-	      // 			       latlng.lng +
-	      // 			      '&cost=10');
-
-	      
-	      lines.forEach((l) => map.removeLayer(l))
-	      if (marker !== undefined) {
-		  map.removeLayer(marker); 		  
-	      }
-	      if (polygon !== undefined) {
-		  map.removeLayer(polygon)
-	      }
-
-	      
-	      let poljson = await polygon_response.json();
-	      // let linjson = await multilinestring_response.json();
-
-	      let circleOptions = {
-		  radius: 4,
-		  color: 'blue',
-		  fillColor: 'blue',
-		  fillOpacity: 1
-	      }
-	      
-	      // for (let a in linjson["results"]["MultilinestringResult"]["coordinates"]) {
-		  // lines.push(L.polyline(linjson["results"]["MultilinestringResult"]["coordinates"][a], {color: 'red'}).addTo(map));
-	      // }
-	      polygon = L.polygon(poljson["results"]["PolygonResult"]["coordinates"], {color: 'blue'}).addTo(map);
-	      marker = L.circleMarker(poljson["start"]["coordinates"].reverse(), circleOptions).addTo(map);
+    polJson = await polygon_response.json();
+    
+}
 
 
-	  }
-	  doSearch();
-      }
-      );
+async function getLinestringResponse() {
+    if (latlng === undefined || latlng === null) {
+	return;
+    }
+    
+    let multilinestring_response = await fetch('/multilinestring?lat=' +
+					       latlng.lat +
+					       '&lng=' +
+					       latlng.lng +
+					       '&cost=' +
+					       cost);
+    
+    linJson = await multilinestring_response.json();
+}
