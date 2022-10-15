@@ -35,7 +35,6 @@ let linJson = null;
 map.on("click", (e) => {
     async function start() {
 	latlng = e.latlng;
-	// resetAll();
 	await draw();
     }
     start();
