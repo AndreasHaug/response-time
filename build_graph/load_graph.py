@@ -43,12 +43,6 @@ def load_roadlinks_from_raw(raw_link_collection: collection.Collection,
             }
         else:
             super_placement = a["superstedfesting"]
-            # super_placement = {
-            #     "lanes" : extract_lane_numbers(super_placement["kjørefelt"]),
-            #     "startposition" : super_placement["startposisjon"],
-            #     "endposition" : super_placement["sluttposisjon"],
-            #     "seq_id" : super_placement["veglenkesekvensid"]
-            # }
             
             link =  {
                 "reference" : a["referanse"],
@@ -158,27 +152,33 @@ def attach_speedlimits(roadlink, speedlimit_collection):
     return link_speedlimits
 
     
-def load_nodes(link_collection: collection.Collection, node_collection: collection.Collection):
+def load_nodes(raw_link_collection: collection.Collection, node_collection: collection.Collection):
     print("Getting node ids")
-    node_ids = load_node_ids(link_collection)
+    node_ids = load_node_ids(raw_link_collection) 
     print("Finished reading node ids")
     print("Extracting nodes")
     for a in node_ids:
-        # links = list(link_collection.find({ "$or" : [ { "startnode" : a }, { "endnode" : a }]}, { "reference" : 1 }))
-        links = list(map(lambda x: x.get("reference"), link_collection.find({ "$or" : [ { "startnode" : a }, { "endnode" : a }]}, { "reference" : 1 })))
-        # print(links)
+        links = list(map(lambda x: x.get("reference"),
+                         raw_link_collection.find({ "$or" :
+                                                    [{ "startnode" : a }, { "sluttnode" : a }]
+                                                   },
+                                                  { "reference" : 1 })))
         node_collection.insert_one({
             "id" : a,
             "links" : links
         })
         
 
-def load_node_ids(link_collection: collection.Collection) -> set[str]:
+def load_node_ids(raw_link_collection) -> set[str]:
     node_ids: set[str] = set()
-    for a in link_collection.find({}, { "startnode" : 1, "endnode" : 1 }):
+    for a in filter(filter_detaillevel_and_type, raw_link_collection.find({},
+                                                                          {"startnode" : 1,
+                                                                           "sluttnode" : 1,
+                                                                           "typeVeg_sosi" : 1,
+                                                                           "detaljnivå" : 1})):
         node_ids.add(a["startnode"])
-        node_ids.add(a["endnode"])
-
+        node_ids.add(a["sluttnode"])
+               
     return node_ids
 
 
@@ -194,32 +194,35 @@ def filter_detaillevel_and_type(val) -> bool:
         val["detaljnivå"] != "Vegtrase")
 
 
-def load_points(link_collection: collection.Collection, points_collection: collection.Collection):
+def load_points(raw_link_collection: collection.Collection, points_collection: collection.Collection):
 
 
     def get_node(val, i, length):
         if i == 0:
             return val["startnode"]
         elif i == length - 1:
-            return val["endnode"]
+            return val["sluttnode"]
         return None
     
-    
-    for a in link_collection.find({}, {
-        "reference" : 1,
-        "geometry" : 1,
-        "startnode" : 1,
-        "endnode" : 1
-    }):
-        
-        coordinates_length = len(a["geometry"]["coordinates"])
-        for i, b in enumerate(a["geometry"]["coordinates"]):
+    for a in filter(filter_detaillevel_and_type, raw_link_collection.find({},
+                                                                          {
+                                                                              "referanse" : 1,
+                                                                              "geometri" : 1,
+                                                                              "startnode" : 1,
+                                                                              "sluttnode" : 1,
+                                                                              "typeVeg_sosi" : 1,
+                                                                              "detaljnivå" : 1
+                                                                          })):
+
+        geometry = geometry_as_geojson_latlng(a)
+        coordinates_length = len(geometry["coordinates"])
+        for i, b in enumerate(geometry):
             node = get_node(a, i, coordinates_length)
             t = {
-                "link" : a["reference"],
+                "link" : a["referanse"],
                 "geometry" : {
                     "type" : "Point",
-                    "coordinates" : b,
+                    "coordinates" : geometry["coordinates"][i],
                 },
                 "node" : node,
                 "linestring_index" : i,
@@ -247,13 +250,13 @@ def load_graph(raw_link_collection: collection.Collection,
     print("loading nodes")
     node_collection.drop()
     node_collection.drop_indexes()
-    load_nodes(link_collection, node_collection)
+    load_nodes(raw_link_collection, node_collection)
     print("loaded nodes")
 
     print("loading points")
     points_collection.drop()
     points_collection.drop_indexes()
-    load_points(link_collection, points_collection)
+    load_points(raw_link_collection, points_collection)
     print("loaded points")
     
 
