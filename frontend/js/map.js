@@ -94,7 +94,7 @@ async function drawPolygon() {
     if (polJson === undefined || polJson === null) {
 	await getPolygonResponse();
     }
-    polygon = L.polygon(polJson["results"]["PolygonResult"]["coordinates"],
+    polygon = L.polygon(polJson["result"]["PolygonResult"]["coordinates"],
 			{color: 'blue'}).addTo(map);
     marker.push(L.circleMarker(polJson["start"]["coordinates"],
 			       circleOptions).addTo(map));
@@ -108,8 +108,8 @@ async function drawLinestrings() {
     if (linJson === undefined || linJson === null) {
 	await getLinestringResponse();
     }
-    for (let a in linJson["results"]["MultilinestringResult"]["coordinates"]) {
-	lines.push(L.polyline(linJson["results"]["MultilinestringResult"]["coordinates"][a],
+    for (let a in linJson["result"]["MultilinestringResult"]["coordinates"]) {
+	lines.push(L.polyline(linJson["result"]["MultilinestringResult"]["coordinates"][a],
 			      {color: 'red'}).addTo(map));
     }
     marker.push(L.circleMarker(linJson["start"]["coordinates"],

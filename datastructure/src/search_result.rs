@@ -18,7 +18,7 @@ pub struct Start {
 #[derive(Serialize, Debug)]
 pub struct SearchResult {
     start: Start,
-    results: SearchResultProperty,
+    result: SearchResultProperty,
 }
 
 #[derive(Serialize, Debug)]
@@ -48,10 +48,10 @@ pub struct DebugResult {
 }
 
 impl SearchResult {
-    pub fn new(start: Start, results: SearchResultProperty) -> SearchResult {
+    pub fn new(start: Start, result: SearchResultProperty) -> SearchResult {
 	SearchResult {
 	    start,
-	    results,
+	    result,
 	}
     }
 }
