@@ -204,15 +204,16 @@ def load_points(raw_link_collection: collection.Collection, points_collection: c
             return val["sluttnode"]
         return None
     
-    for a in filter(filter_detaillevel_and_type, raw_link_collection.find({},
-                                                                          {
-                                                                              "referanse" : 1,
-                                                                              "geometri" : 1,
-                                                                              "startnode" : 1,
-                                                                              "sluttnode" : 1,
-                                                                              "typeVeg_sosi" : 1,
-                                                                              "detaljnivå" : 1
-                                                                          })):
+    for a in filter(filter_detaillevel_and_type,
+                    raw_link_collection.find({},
+                                             {
+                                                 "referanse" : 1,
+                                                 "geometri" : 1,
+                                                 "startnode" : 1,
+                                                 "sluttnode" : 1,
+                                                 "typeVeg_sosi" : 1,
+                                                 "detaljnivå" : 1
+                                             })):
 
         geometry = geometry_as_geojson_latlng(a)
         coordinates_length = len(geometry["coordinates"])
