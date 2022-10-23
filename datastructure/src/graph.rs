@@ -15,9 +15,6 @@ pub struct Graph {
 }
 
 
-const EARTH_RADIUS: f64 = 6371.088;
-
-
 impl Graph {
 
     pub async fn new(nodes: HashMap<String, Node>, links: HashMap<String, RoadLink>) -> Self {

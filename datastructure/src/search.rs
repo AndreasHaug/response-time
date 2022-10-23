@@ -1,7 +1,6 @@
 use std::collections::{HashSet, BinaryHeap, HashMap};
 use geo::{MultiLineString};
 use geo::ConvexHull;
-use serde::Serialize;
 use std::error::Error;
 use crate::closest::Closest;
 use crate::graph::{Graph, Node, LineStringSegment, NodeCost, RoadLink};

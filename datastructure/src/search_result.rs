@@ -1,12 +1,10 @@
 use std::fmt::Debug;
 use serde::Serialize;
-use crate::{graph::NodeCost};
 
 #[derive(Serialize, Debug)]
 pub enum SearchResultProperty {
     MultilinestringResult(MultiLineStringResult),
     PolygonResult(PolygonResult),
-    DebugResult(DebugResult),
 }
 
 
