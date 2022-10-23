@@ -3,13 +3,12 @@ use std::{
     time::Instant,
 };
 
-use datastructure::search_result::*;
+use datastructure::{search_result::*, db};
 
 use mongodb::Client;
 use datastructure::{
     closest::Closest,
     graph::{Graph},
-    mongodb_interaction,
 };
 use rocket::fs::NamedFile;
 use rocket::serde::json::{Json};
@@ -80,6 +79,7 @@ async fn multilinestring(graph: &State<Graph>,
 			 lng: f64,
 			 cost: i32) -> Option<Json<SearchResult>> {
     
+    
     let s = Instant::now();
     let res = Some(Json(
         graph
@@ -95,8 +95,8 @@ async fn multilinestring(graph: &State<Graph>,
 #[launch]
 async fn launch() -> _ {
 
-    let nodes = mongodb_interaction::get_nodes().await.unwrap();
-    let links = mongodb_interaction::get_links().await.unwrap();
+    let nodes = db::get_nodes().await.unwrap();
+    let links = db::get_links().await.unwrap();
     
     rocket::build()
         .manage(Graph::new(nodes, links).await)
