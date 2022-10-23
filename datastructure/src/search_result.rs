@@ -32,7 +32,7 @@ pub struct MultiLineStringResult {
 pub struct PolygonResult {
     // start: [f64; 2],
     r#type: String,
-    coordinates: Vec<[f64; 2]>,
+    coordinates: Vec<Vec<[f64; 2]>>,
 }
 
 pub struct MultiPointResult {
@@ -76,7 +76,7 @@ impl PolygonResult {
     pub fn new(coordinates: Vec<[f64; 2]>) -> Self {
 	PolygonResult {
 	    r#type: String::from("Polygon"),
-	    coordinates,
+	    coordinates: vec![coordinates],
 	}
     }
 }
