@@ -32,7 +32,6 @@ impl Closest {
     }
 
     pub fn node(&self) -> Option<String> {
-	// &self.node
 	match &self.node {
 	    Some(s) => Some(s.to_owned()),
 	    None => None,

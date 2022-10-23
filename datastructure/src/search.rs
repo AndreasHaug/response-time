@@ -7,7 +7,6 @@ use crate::closest::Closest;
 use crate::graph::{Graph, Node, LineStringSegment, NodeCost, RoadLink};
 use crate::search_result::{MultiLineStringResult, PolygonResult, SearchResult, Start};
 use crate::graph::Haversine;
-// use rs_concaveman::{concaveman, location_trait::LocationTrait};
 
 pub struct Search<'a> {
     // start: Start,
@@ -25,12 +24,6 @@ pub struct SearchUtils {
     queue: BinaryHeap<NodeCost>,
     node_costs: HashMap<String, NodeCost>,
 }
-
-// #[derive(Serialize, Debug)]
-// pub struct Start {
-//     r#type : String,
-//     coordinates: [f64; 2],
-// }
 
 
 impl<'a> Search<'a> {
@@ -88,7 +81,6 @@ impl<'a> Search<'a> {
 	let node: bool = closest.node.is_some();
 	
 	let mut search = Search::new(
-	    // Start::new(closest.geometry.coordinates),
 				     graph,
 				     closest,
 				     cost_seconds).await;

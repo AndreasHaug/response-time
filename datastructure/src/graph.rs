@@ -208,26 +208,9 @@ impl Haversine for PointPair {
 	let p1 = geo::Point::new(self.first[0], self.first[1]);
 	let p2 = geo::Point::new(self.last[0], self.last[1]);
 	f64::round(p1.haversine_distance(&p2)) as i32
-
-
-	// let p1_lat = f64::to_radians(self.first[0]);
-	// let p1_lng = f64::to_radians(self.first[1]);
-
-	// let p2_lat = f64::to_radians(self.last[0]);
-	// let p2_lng = f64::to_radians(self.last[1]);
-
-	// let dlng = p2_lng - p1_lng;
-	// let dlat = p2_lat - p1_lat;
-
-	// let a = f64::powi(f64::sin(dlat / 2.0), 2) +
-	    // f64::cos(p1_lat) * f64::cos(p2_lat) * f64::powi(f64::sin(dlng / 2.0), 2);
-
-	// let c = 2.0 * f64::asin(f64::sqrt(a));
-	// let earth_radius_m = EARTH_RADIUS * 1000.00;
-	
-	// f64::round(c * earth_radius_m) as i32
     }
 }
+
 
 impl Node {
     pub fn new(id: String, links: Vec<String>) -> Self {

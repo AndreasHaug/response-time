@@ -1,5 +1,4 @@
 use crate::{
-    // closest::{self, Closest},
     graph::{Node, RoadLink},
     mongodb_queries,
 };
@@ -13,6 +12,7 @@ use std::{
     collections::HashMap,
     error::Error,
 };
+
 
 static DB_NAME: &str = "roaddata";
 static NODES: &str = "nodes";
@@ -28,15 +28,11 @@ pub async fn get_links() -> Result<HashMap<String, RoadLink>, Box<dyn Error>> {
     let link_collection = db.collection::<RoadLink>(LINKS);
 
     let mut links: HashMap<String, RoadLink> = HashMap::new();
-    // let mut cursor = link_collection.find(doc! {}, None).await?;
     let mut cursor = link_collection
         .aggregate(mongodb_queries::get_links(), None)
         .await?;
     while let Some(l) = cursor.next().await {
-        // let link = l.unwrap();
-
 	let linkdata = l.unwrap();
-	// println!("{:?}", linkdata);
         let link = bson::from_bson::<RoadLink>(Bson::Document(linkdata)).unwrap();
         links.insert(link.reference.to_owned(), link);
     }
