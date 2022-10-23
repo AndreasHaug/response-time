@@ -1,69 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css"
-	  integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
-	  crossorigin=""/>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css"
+		integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin="" />
 
-    <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js"
-	    integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg="
-	    crossorigin=""></script>
-    
-    <link rel="stylesheet" href="/styles">
-    <link rel="stylesheet" href="/normalize">
-    
+	<script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js"
+		integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg=" crossorigin=""></script>
 
-    <title>map</title>
-    
-  </head>
-  
-  <body>
-    <!-- <div class="outer"> -->
-      <div class="bar">
-	<!-- <ul> -->
+	<link rel="stylesheet" href="/styles">
+	<link rel="stylesheet" href="/normalize">
+
+	<title>Response time</title>
+	
+</head>
+
+<body>
+	<div class="bar">
 	  <a class="buttonelement" id="polbutton">Draw polygon</a>
 	  <a class="buttonelement" id="linbutton">Draw linestrings</a>
 	  <a class="buttonelement" id="bothbutton">Draw polygon and linestrings</a>
-	  <!-- <a class="buttonelement" id="timebutton">Time</a> -->
-	  <!-- <a class="buttonelement" id="infobutton">Inf -->
-	    <div class="dropdownmenu">
-	      <a class="buttonelement timebutton">Time</a>
+	  <div class="dropdown">
+	    <button class="dropbtn">Time
+	    </button>
+	    <div class="dropdowns">
+	      <a id="1min" class="dropdownelement" href="#">1 min</a>
+	      <a id="2min" class="dropdownelement" href="#">2 min</a>
+	      <a id="5min" class="dropdownelement" href="#">5 min</a>
+	      <a id="10min" class="dropdownelement" href="#">10 min</a>
+	      <a id="20min" class="dropdownelement" href="#">20 min</a>
+	    </div>
+	  </div>
+	</div>
 
-	      <!-- <button class="dropdownbutton">Time -->
-		<!-- <i class fa fa-caret-down></i> -->
-	      <!-- </button> -->
-	      <div class="dropdowns">
-		<a class="dropdownelement" href="#">1</a>
-		<a class="dropdownelement" href="#">2</a>
-		<a class="dropdownelement" href="#">5</a>
-		<a class="dropdownelement" href="#">10</a>
-		<a class="dropdownelement" href="#">20</a>
-		<a class="dropdownelement" href="#">30</a>
-		<a class="dropdownelement" href="#">40</a>
-	      </div>
-		
-	      </div>
-	      
-
-
-	      <!-- <p>5 min</p> -->
-	    <!-- </div> -->
-	  <!-- </li> -->
-	<!-- </ul> -->
-      <!-- </div> -->
-      <!-- <div id="mapcontainer"> -->
+	<div id="map"></div>
+	<script src="/navigationbar"></script>
 	
-      <div id="map"></div>
-      <!-- </div> -->
-    <!-- </div> -->
-
-    <script src="/navigationbar"></script>
-    <script src="/map"></script>
-      
-    </body>
-  </html>
+	<script src="/map"></script>
+</body>
+</html>
