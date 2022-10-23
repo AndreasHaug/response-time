@@ -1,4 +1,4 @@
-function change(e) { 
+function change(e) {
     e.target.classList.add("clicked"); 
     if (prev !== null) { 
  	prev.classList.remove("clicked"); 
