@@ -26,7 +26,7 @@ let lines = [];
 let polygon;
 let marker = [];
 let latlng;
-let cost = 3;
+let cost = 1;
 
 let polJson = null;
 let linJson = null;
