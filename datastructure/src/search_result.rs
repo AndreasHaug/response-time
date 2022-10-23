@@ -9,17 +9,20 @@ pub enum SearchResultProperty {
     DebugResult(DebugResult),
 }
 
+
 #[derive(Serialize, Debug)]
 pub struct Start {
     pub r#type : String,
     pub coordinates: [f64; 2],
 }
 
+
 #[derive(Serialize, Debug)]
 pub struct SearchResult {
     start: Start,
     result: SearchResultProperty,
 }
+
 
 #[derive(Serialize, Debug)]
 pub struct MultiLineStringResult {
@@ -28,6 +31,7 @@ pub struct MultiLineStringResult {
     coordinates: Vec<Vec<[f64; 2]>>,
 }
 
+
 #[derive(Serialize, Debug)]
 pub struct PolygonResult {
     // start: [f64; 2],
@@ -35,12 +39,6 @@ pub struct PolygonResult {
     coordinates: Vec<Vec<[f64; 2]>>,
 }
 
-#[derive(Serialize, Debug)]
-pub struct DebugResult {
-    nodes: Vec<NodeCost>,
-    polygon: PolygonResult,
-    multilinestring: MultiLineStringResult,
-}
 
 impl SearchResult {
     pub fn new(start: Start, result: SearchResultProperty) -> SearchResult {
@@ -52,12 +50,6 @@ impl SearchResult {
 }
 
 
-impl DebugResult {
-    pub fn new(nodes: Vec<NodeCost>, polygon: PolygonResult, multilinestring: MultiLineStringResult) -> Self {
-	DebugResult { nodes, polygon, multilinestring }
-    }
-}
-
 impl MultiLineStringResult {
     pub fn new(coordinates: Vec<Vec<[f64; 2]>>) -> Self {
 	MultiLineStringResult {
@@ -66,6 +58,7 @@ impl MultiLineStringResult {
 	}
     }
 }
+
 
 impl PolygonResult {
     pub fn new(coordinates: Vec<[f64; 2]>) -> Self {
