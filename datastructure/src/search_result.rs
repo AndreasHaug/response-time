@@ -35,11 +35,6 @@ pub struct PolygonResult {
     coordinates: Vec<Vec<[f64; 2]>>,
 }
 
-pub struct MultiPointResult {
-    r#type: String,
-    coordinates: Vec<[f64; 2]>,
-}
-
 #[derive(Serialize, Debug)]
 pub struct DebugResult {
     nodes: Vec<NodeCost>,
@@ -77,16 +72,6 @@ impl PolygonResult {
 	PolygonResult {
 	    r#type: String::from("Polygon"),
 	    coordinates: vec![coordinates],
-	}
-    }
-}
-
-impl MultiPointResult {
-    pub fn new(coordinates: Vec<[f64; 2]>) -> Self {
-	MultiPointResult {
-	    // start,
-	    r#type: String::from("MultiPoint"),
-	    coordinates,
 	}
     }
 }
