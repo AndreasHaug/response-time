@@ -235,7 +235,7 @@ def load_points(raw_link_collection: collection.Collection, points_collection: c
 
 
 
-def load_graph(raw_link_collection: collection.Collection,
+def load_from_raw(raw_link_collection: collection.Collection,
                link_collection: collection.Collection,
                speedlimit_collection: collection.Collection,
                node_collection: collection.Collection,
@@ -295,6 +295,6 @@ def main():
     node_collection = db[args.node_collection_name]
     points_collection = db[args.points_collection_name]
     
-    load_graph(raw_link_collection, link_collection, speedlimit_collection, node_collection, points_collection)
+    load_from_raw(raw_link_collection, link_collection, speedlimit_collection, node_collection, points_collection)
     
 main()
