@@ -1,10 +1,8 @@
 import os
-from re import template
 import pymongo
 import argparse
 from pymongo import mongo_client
 from pymongo import collection
-from typing import Union
 from fastapi import FastAPI, Request, Response
 import uvicorn
 from fastapi.staticfiles import StaticFiles
