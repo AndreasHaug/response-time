@@ -158,11 +158,11 @@ def load_nodes(raw_link_collection: collection.Collection, node_collection: coll
     print("Finished reading node ids")
     print("Extracting nodes")
     for a in node_ids:
-        links = list(map(lambda x: x.get("reference"),
-                         raw_link_collection.find({ "$or" :
+        links = list(map(lambda x: x.get("referanse"),
+                         filter(filter_detaillevel_and_type, raw_link_collection.find({ "$or" :
                                                     [{ "startnode" : a }, { "sluttnode" : a }]
                                                    },
-                                                  { "reference" : 1 })))
+                                                  { "referanse" : 1 , "typeVeg_sosi" : 1, "detaljnivå" : 1}))))
         node_collection.insert_one({
             "id" : a,
             "links" : links
