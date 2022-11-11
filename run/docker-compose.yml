@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  datastructure:
+    build: .
+    ports:
+      - 80:8000
+    restart: unless-stopped
+    environment:
+      - DB_URL=mongodb://database/roaddata
+  closest:
+    build: ./closest
+    ports:
+      - 8001:8001  
+  database:
+    image: mongo:6.0
+    ports:
+      - 27017:27017
+    restart: unless-stopped
+    volumes:
+      - "../db/mongodb:/data/db"

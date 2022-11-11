@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  build_db:
+    build: .
+    stdin_open: true
+    tty: true       
+    ports:
+      - 3000:3001
+    environment:
+      - DB_URL=mongodb://database/roaddata
+    volumes:
+      - ./DATA:/build_db/DATA
+  database:
+    image: mongo:6.0
+    ports:
+      - 27017:27017
+    volumes:
+      - "../db/mongodb:/data/db"
+  # volumes:
+    # build_db: 
