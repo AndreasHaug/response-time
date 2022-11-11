@@ -16,5 +16,3 @@ services:
       - 27017:27017
     volumes:
       - "../db/mongodb:/data/db"
-  # volumes:
-    # build_db: 

@@ -1,1 +1,0 @@
-uvicorn closest:app --reload

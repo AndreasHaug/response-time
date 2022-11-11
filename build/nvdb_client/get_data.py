@@ -36,8 +36,6 @@ def get(url, x_client, dest, params = {}):
         n_next = data["metadata"]["neste"]["href"]
         if n_next == next:
             return
-            
-            # sys.exit(0)
         else:
             next = n_next
         
@@ -46,10 +44,7 @@ def get(url, x_client, dest, params = {}):
             fd.write(json.dumps(data))
             print(count, "written")
         count += 1
-        time.sleep(2)
-
-
-
+        # time.sleep(0.5)
     
 def main():
 
@@ -61,36 +56,18 @@ def main():
           'srid' : 'wgs84',
           
           # for making selection of Oslo and Viken
-          # comment out to get data of whole country
+          # comment out "fylke" : "3,30" to get data of whole country
           "fylke" : "3,30",
-          # "kommune" : "1856"
          })
-
-    # get('https://nvdbapiles-v3.atlas.vegvesen.no/vegobjekter/105',
-        # "Fartsgrenseklient",
-        # "fartsgrenser",
-        # { 'inkluder' : 'geometri,egenskaper',
-          # 'srid' : 'wgs84',
-          # "fylke" : 30,
-         # })    
 
 
     get("https://nvdbapiles-v3.atlas.vegvesen.no/vegnett/veglenkesekvenser/segmentert/",
         "Vegnettklient",
         "veglenkesekvenser",
         { 'srid' : 'utm33',
+
           # for making selection of Oslo and Viken
-          # comment out to get data of whole country          
-          # "kommune" : "1856"
+          # comment out "fylke" : "3,30" to get data of whole country 
           "fylke" : "3,30"
          })
-
-    # get("https://nvdbapiles-v3.atlas.vegvesen.no/vegnett/veglenkesekvenser/segmentert/",
-    #     "Vegnettklient",
-    #     "veglenkesekvenser",
-    #     { 'srid' : 'utm33',
-    #       "fylke" : 30
-    #      })    
-
-
 main()

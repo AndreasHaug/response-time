@@ -10,9 +10,11 @@ COPY ./build_db/*.py .
 COPY ./build_db/*.sh .
 COPY ./nvdb_client/get_data.py .
 
+RUN rm -fr DATA
+
 RUN pip install -r requirements.txt
 
-CMD python3 get_data.py &&
+CMD python3 get_data.py && \
     python3 load_raw.py \
     mongodb://database/roaddata \
     DATA/veglenkesekvenser DATA/fartsgrenser/ \
