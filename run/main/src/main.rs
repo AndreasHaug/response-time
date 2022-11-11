@@ -8,10 +8,10 @@ use std::{
 
 use std::env;
 
-use datastructure::{search_result::*, db};
+use main::{search_result::*, db};
 
 use mongodb::Client;
-use datastructure::{
+use main::{
     closest::Closest,
     graph::{Graph},
 };
