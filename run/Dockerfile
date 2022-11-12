@@ -10,8 +10,8 @@ RUN useradd -g app app
 WORKDIR /frontend
 COPY ./frontend .
 RUN chown -R app:app .
-WORKDIR /datastructure
-COPY ./datastructure .
+WORKDIR /main
+COPY ./main .
 RUN chown -R app:app .
 
 
