@@ -214,10 +214,10 @@ def load_points(raw_link_collection: collection.Collection, points_collection: c
                                                  "typeVeg_sosi" : 1,
                                                  "detaljnivå" : 1
                                              })):
-
+        
         geometry = geometry_as_geojson_latlng(a)
         coordinates_length = len(geometry["coordinates"])
-        for i, b in enumerate(geometry):
+        for i, b in enumerate(geometry["coordinates"]):
             node = get_node(a, i, coordinates_length)
             t = {
                 "link" : a["referanse"],
