@@ -131,13 +131,15 @@ async fn launch() -> _ {
     let links = db::get_links().await.unwrap();
     println!("  Finished loading links");
     println!("Starting server.");
+
+    
+
+    let client: Client = Client::with_options(client_options).unwrap();
     
     rocket::build()
         .manage(Graph::new(nodes, links).await)
         .manage(
-            Client::with_uri_str("mongodb://127.0.0.1:27017/")
-                .await
-                .unwrap(),
+	    client
         )
         .mount("/", routes![index])
 	.mount("/styles", routes![styles])
