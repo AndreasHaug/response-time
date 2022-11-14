@@ -23,8 +23,6 @@ def load_data(collection: collection.Collection, filepath: str):
 def parse_args():
     parser = argparse.ArgumentParser(description = "Loading raw segmented link sequenzes from NVDB")
     parser.add_argument("server", type = str, help = "hostname or ip-address")
-    # parser.add_argument("user", type = str, help = "MongoDB username")
-    # parser.add_argument("passwd", type = str, help = "MongoDB password")
     parser.add_argument("rawlink_file_path", type = str, help = "path of folder containing json-data of segmented link sequenzes")
     parser.add_argument("rawspeedlimits_file_path", type = str, help = "path of folder containing json-data of speedlimits")
     parser.add_argument("port", type = int, default = 27017, help = "port number of MongoDB instance")
@@ -35,11 +33,12 @@ def parse_args():
 
 
 def main():
+
     args = parse_args()
     mongo_client = pymongo.MongoClient(args.server,
                                        args.port,
-                                       # username = args.user,
-                                       # password = args.passwd,
+                                       username = os.environ.get("MONGO_USERNAME"),
+                                       password = os.environ.get("MONGO_PASSWORD"),
                                        authSource = args.db_name,
                                        ssl = False)
 
@@ -53,7 +52,10 @@ def main():
     db: Database = mongo_client[args.db_name]
     rawlink_collection: collection.Collection = db[args.db_rawlink_collection_name]
     speedlimit_collection: collection.Collection = db[args.db_rawspeedlimits_collection_name]
+
+    print("Writing raw links")
     load_data(rawlink_collection, args.rawlink_file_path)
+    print("Writing raw speedlimits")
     load_data(speedlimit_collection, args.rawspeedlimits_file_path)
 
 

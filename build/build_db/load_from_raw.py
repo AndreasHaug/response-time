@@ -2,6 +2,7 @@ import argparse
 import pymongo
 from pymongo import collection
 import utm
+import os
 
 
 def utm_to_latlng(north: float, east: float) -> list[float]:
@@ -281,11 +282,11 @@ def parse_args():
 def main():
     args = parse_args()
     mongo_client: pymongo.MongoClient = pymongo.MongoClient(args.server,
-                                       args.port,
-                                       # username = args.username,
-                                       # password = args.passwd,
-                                       authSource = args.db_name,
-                                       ssl = False)
+                                                            args.port,
+                                                            username = os.environ.get("MONGO_USERNAME"),
+                                                            password = os.environ.get("MONGO_PASSWORD"),
+                                                            authSource = args.db_name,
+                                                            ssl = False)
 
     
     db = mongo_client[args.db_name]

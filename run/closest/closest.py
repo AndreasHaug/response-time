@@ -7,13 +7,19 @@ from fastapi import FastAPI, Request, Response
 import uvicorn
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from uvicorn.main import print_version
 
 
+
+print("starting closest")
+print(os.environ.get("MONGO_USERNAME"))
 mongo_client: pymongo.MongoClient = pymongo.MongoClient(
     # "localhost",
     # "database",
     os.environ.get("MONGO_DB_CONNECTION"),
     27017,
+    username = os.environ.get("MONGO_USERNAME"),
+    password = os.environ.get("MONGO_PASSWORD"),
     authSource = "roaddata",
     ssl = False
 )
