@@ -1,7 +1,18 @@
 use std::fmt::Debug;
-use schemars::JsonSchema;
+// use schemars::JsonSchema;
 // use rocket_okapi::JsonSchema;
-use serde::Serialize;
+
+use rocket::form::FromForm;
+use rocket::{get, post, serde::json::Json};
+use rocket_okapi::okapi::schemars;
+use rocket_okapi::okapi::schemars::JsonSchema;
+use rocket_okapi::settings::UrlObject;
+use rocket_okapi::{openapi, openapi_get_routes, rapidoc::*, swagger_ui::*};
+use serde::{Deserialize, Serialize};
+
+
+
+// use serde::Serialize;
 
 #[derive(Serialize, Debug, JsonSchema)]
 pub enum SearchResultProperty {

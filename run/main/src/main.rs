@@ -11,14 +11,26 @@ use std::env;
 use main::{search_result::*, db};
 
 use mongodb::Client;
+use mongodb::options::{ClientOptions, ServerAddress};
+
 use main::{
     closest::Closest,
     graph::{Graph},
 };
 use rocket::fs::NamedFile;
-use rocket::serde::json::{Json};
+// use rocket::serde::json::{Json};
 use rocket::State;
-use rocket::get;
+
+
+use rocket::form::FromForm;
+use rocket::{get, post, serde::json::Json};
+use rocket_okapi::okapi::schemars;
+use rocket_okapi::okapi::schemars::JsonSchema;
+use rocket_okapi::settings::UrlObject;
+use rocket_okapi::{openapi, openapi_get_routes, rapidoc::*, swagger_ui::*};
+use serde::{Deserialize, Serialize};
+
+
 // use rocket_contrib::json::Json;
 // use rocket_contrib::json::Json as RocketJson;
 // use rocket_okapi::{openapi, routes_with_openapi, JsonSchema};
@@ -29,6 +41,7 @@ use rocket::get;
 
 #[macro_use] extern crate rocket;
 
+#[openapi(skip)]
 #[get("/")]
 async fn index() -> Option<NamedFile> {
     NamedFile::open(Path::new("../frontend/static/index.html"))
@@ -36,32 +49,33 @@ async fn index() -> Option<NamedFile> {
         .ok()
 }
 
-
-#[get("/")]
+#[openapi(skip)]
+#[get("/styles")]
 async fn styles() -> Option<NamedFile> {
     NamedFile::open(Path::new("../frontend/css/styles.css")).await.ok()
 }
 
-
-#[get("/")]
+#[openapi(skip)]
+#[get("/normalize")]
 async fn normalize() -> Option<NamedFile> {
     NamedFile::open(Path::new("../frontend/css/normalize.css")).await.ok()
 }
 
-
-#[get("/")]
+#[openapi(skip)]
+#[get("/map")]
 async fn map() -> Option<NamedFile> {
     NamedFile::open(Path::new("../frontend/js/map.js")).await.ok()
 }
 
 
-#[get("/")]
+#[openapi(skip)]
+#[get("/navigationbar")]
 async fn navigationbar() -> Option<NamedFile> {
     NamedFile::open(Path::new("../frontend/js/navigationbar.js")).await.ok()
 }
 
-// #[openapi]
-#[get("/?<lat>&<lng>&<cost>")]
+#[openapi(tag = "Polygon")]
+#[get("/polygon?<lat>&<lng>&<cost>")]
 async fn polygon(graph: &State<Graph>,
 		 lat: f64,
 		 lng: f64,
@@ -78,19 +92,17 @@ async fn polygon(graph: &State<Graph>,
     res
 }
 
-// "http://closest:8001/?lat={}&lng={}"
+
 async fn closest(lat: f64, lng: f64) -> Result<Closest, reqwest::Error> {
-    println!("{}", env::var("CLOSEST_URL").unwrap());
     reqwest::get(format!("{}?lat={}&lng={}", env::var("CLOSEST_URL").unwrap(), lat, lng))
-    // reqwest::get(format!("http://localhost:8001/?lat={}&lng={}", lat, lng))
-	// reqwest::get(format!("http://closest:8001/?lat={}&lng={}?lat={}&lng={}", lat, lng))
 	.await?
 	.json::<Closest>()
 	.await
 }
 
 
-#[get("/?<lat>&<lng>&<cost>")]
+#[openapi(tag = "MultiLineString")]
+#[get("/multilinestring?<lat>&<lng>&<cost>")]
 async fn multilinestring(graph: &State<Graph>,
 			 lat: f64,
 			 lng: f64,
@@ -141,12 +153,22 @@ async fn launch() -> _ {
         .manage(
 	    client
         )
-        .mount("/", routes![index])
-	.mount("/styles", routes![styles])
-        .mount("/normalize", routes![normalize])
-	.mount("/navigationbar", routes![navigationbar])
-        .mount("/map", routes![map])
-        .mount("/polygon", routes![polygon])
-        .mount("/multilinestring", routes![multilinestring])
-
+        .mount(
+	    "/",
+	    openapi_get_routes![
+		polygon,
+		multilinestring,
+		index,
+		styles,
+		normalize,
+		navigationbar,
+		map
+	    ])
+        .mount(
+	    "/api/",
+            make_swagger_ui(&SwaggerUIConfig {
+                url: "../openapi.json".to_owned(),
+                ..Default::default()
+            }),	    
+	)        
 }
