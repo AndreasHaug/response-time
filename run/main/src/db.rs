@@ -1,10 +1,8 @@
 
 use std::vec;
 
-// use mongodb::bson::{doc, Document};
 use crate::{
     graph::{Node, RoadLink},
-    // mongodb_queries,
 };
 use futures::stream::StreamExt;
 use mongodb::{
@@ -59,16 +57,13 @@ pub(crate) fn get_links_query() -> Vec<Document> {
 pub async fn get_links() -> Result<HashMap<String, RoadLink>, Box<dyn Error>> {
     let connection_string = env::var("MONGO_DB_CONNECTION").unwrap();
     let client_options = ClientOptions::builder()
-	// .hosts(vec![ServerAddress::parse(env::var("MONGO_DB_CONNECTION").unwrap()).unwrap()])	
-    // .hosts(vec![ServerAddress::parse("localhost:27017").unwrap()])	
-    // .hosts(vec![ServerAddress::parse("database:27017").unwrap()])
 	.hosts(vec![ServerAddress::parse(connection_string).unwrap()])
-	.credential(mongodb::options::Credential::builder()
-		    .username(Some(env::var("MONGO_USERNAME").unwrap()))
-		    .source(Some("roaddata".to_string()))
-		    .password(Some(env::var("MONGO_PASSWORD").unwrap()))
-		    .build()
-	)
+	// .credential(mongodb::options::Credential::builder()
+	// 	    .username(Some(env::var("MONGO_USERNAME").unwrap()))
+	// 	    .source(Some("roaddata".to_string()))
+	// 	    .password(Some(env::var("MONGO_PASSWORD").unwrap()))
+	// 	    .build()
+	// )
         .build();
     let client: Client = Client::with_options(client_options)?;
     let db = client.database(DB_NAME);
@@ -94,14 +89,12 @@ pub async fn get_nodes() -> Result<HashMap<String, Node>, Box<dyn Error>> {
     println!("{}", connection_string);
     let client_options = ClientOptions::builder()
 	.hosts(vec![ServerAddress::parse(connection_string).unwrap()])
-	.credential(mongodb::options::Credential::builder()
-		    .username(Some(env::var("MONGO_USERNAME").unwrap()))
-		    .source(Some("roaddata".to_string()))
-		    .password(Some(env::var("MONGO_PASSWORD").unwrap()))
-		    .build()
-	)
-    // .hosts(vec![ServerAddress::parse("localhost:27017").unwrap()])
-	// .hosts(vec![ServerAddress::parse("database:27017").unwrap()])
+	// .credential(mongodb::options::Credential::builder()
+	// 	    .username(Some(env::var("MONGO_USERNAME").unwrap()))
+	// 	    .source(Some("roaddata".to_string()))
+	// 	    .password(Some(env::var("MONGO_PASSWORD").unwrap()))
+	// 	    .build()
+	// )
         .build();
     let client: Client = Client::with_options(client_options)?;
     let db = client.database(DB_NAME);

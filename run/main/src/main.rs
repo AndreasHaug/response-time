@@ -127,12 +127,12 @@ async fn launch() -> _ {
     let connection_string = env::var("MONGO_DB_CONNECTION").unwrap();
     let client_options = ClientOptions::builder()
 	.hosts(vec![ServerAddress::parse(connection_string).unwrap()])
-	.credential(mongodb::options::Credential::builder()
-		    .username(Some(env::var("MONGO_USERNAME").unwrap()))
-		    .source(Some("roaddata".to_string()))
-		    .password(Some(env::var("MONGO_PASSWORD").unwrap()))
-		    .build()
-	)
+	// .credential(mongodb::options::Credential::builder()
+	// 	    .username(Some(env::var("MONGO_USERNAME").unwrap()))
+	// 	    .source(Some("roaddata".to_string()))
+	// 	    .password(Some(env::var("MONGO_PASSWORD").unwrap()))
+	// 	    .build()
+	// )
         .build();
 
     println!("Loading data.");
