@@ -18,7 +18,6 @@ use main::{
     graph::{Graph},
 };
 use rocket::fs::NamedFile;
-// use rocket::serde::json::{Json};
 use rocket::State;
 
 
@@ -31,14 +30,6 @@ use rocket_okapi::{openapi, openapi_get_routes, rapidoc::*, swagger_ui::*};
 use serde::{Deserialize, Serialize};
 
 
-// use rocket_contrib::json::Json;
-// use rocket_contrib::json::Json as RocketJson;
-// use rocket_okapi::{openapi, routes_with_openapi, JsonSchema};
-// use rocket_okapi::swagger_ui::{make_swagger_ui, SwaggerUIConfig};
-// use rocket_okapi::{swagger_ui::*, openapi};
-// extern crate dotenv;
-// use rocket_okapi::{openapi, openapi_get_routes};
-
 #[macro_use] extern crate rocket;
 
 #[openapi(skip)]
@@ -49,17 +40,20 @@ async fn index() -> Option<NamedFile> {
         .ok()
 }
 
+
 #[openapi(skip)]
 #[get("/styles")]
 async fn styles() -> Option<NamedFile> {
     NamedFile::open(Path::new("../frontend/css/styles.css")).await.ok()
 }
 
+
 #[openapi(skip)]
 #[get("/normalize")]
 async fn normalize() -> Option<NamedFile> {
     NamedFile::open(Path::new("../frontend/css/normalize.css")).await.ok()
 }
+
 
 #[openapi(skip)]
 #[get("/map")]
@@ -73,6 +67,7 @@ async fn map() -> Option<NamedFile> {
 async fn navigationbar() -> Option<NamedFile> {
     NamedFile::open(Path::new("../frontend/js/navigationbar.js")).await.ok()
 }
+
 
 #[openapi(tag = "Polygon")]
 #[get("/polygon?<lat>&<lng>&<cost>")]

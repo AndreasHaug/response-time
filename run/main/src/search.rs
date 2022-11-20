@@ -7,8 +7,8 @@ use crate::graph::{Graph, Node, LineStringSegment, NodeCost, RoadLink};
 use crate::search_result::{MultiLineStringResult, PolygonResult, SearchResult, Start};
 use crate::graph::Haversine;
 
+
 pub struct Search<'a> {
-    // start: Start,
     utils: SearchUtils,
     pub linestrings: Vec<Vec<[f64; 2]>>,
     closest_link: Closest,
@@ -64,12 +64,12 @@ impl<'a> Search<'a> {
 		.collect::<Vec<[f64; 2]>>());
 
 	SearchResult::new(
-	    // self.start,
 	    Start::new(self.closest_link.geometry.coordinates),
 	    crate::search_result::SearchResultProperty::PolygonResult(polygon)
 	)
     }
 
+    
     async fn closest(&self) -> &Closest {
 	&self.closest_link
     }
@@ -265,7 +265,6 @@ impl SearchUtils {
 	    .unwrap()
 	    .update_cost(cost, possible_new_cost);
 
-	// self.cost = std::cmp::min(cost, possible_new_cost);
 	if possible_new_cost < cost {
 	    self.queue.push(NodeCost::new(nodeid.to_owned(), cost));
 	}

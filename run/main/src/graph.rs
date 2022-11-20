@@ -22,6 +22,7 @@ impl Graph {
 	    nodes, links
 	}
     }
+
     
     pub async fn search(&self, closest: Closest, cost: i32) -> Result<Search, Box<dyn Error>> {
 	Search::do_search(&self, closest, cost).await
@@ -60,6 +61,7 @@ pub struct NodeCost {
     pub node: String,
     pub cost: i32,
 }
+
 
 impl NodeCost {
     pub fn new(node: String, cost: i32) -> Self {
@@ -137,6 +139,7 @@ impl Speedlimit {
     }
 }
 
+
 #[derive(Serialize, Deserialize, Debug)]
 struct SuperPlacement {
     #[serde(default)]
@@ -146,6 +149,7 @@ struct SuperPlacement {
     endposition: f64,
     seq_id: u32,
 }
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LineString {
@@ -222,10 +226,12 @@ impl RoadLink {
 	&self.startnode
     }
 
+    
     pub fn endnode(&self) -> &String {
 	&self.endnode
     }
 
+    
     pub fn get_destination_nodeid(&self, node: &Node) -> String {
 	if node.id == self.startnode {
 	    return self.endnode.to_owned();
@@ -301,6 +307,7 @@ impl RoadLink {
 	self.speedlimits.iter().map(|s| s.get_value())
     }
 
+    
     #[inline]
     fn avg_km_per_h(&self) -> f64 {
 	match self.speedlimits.is_empty() {

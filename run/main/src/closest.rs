@@ -23,14 +23,17 @@ impl Closest {
         &self.link
     }
 
+    
     pub fn linestring_index(&self) -> usize {
         self.linestring_index
     }
 
+    
     pub fn linestring_length(&self) -> usize {
         self.linestring_length
     }
 
+    
     pub fn node(&self) -> Option<String> {
 	match &self.node {
 	    Some(s) => Some(s.to_owned()),

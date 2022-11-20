@@ -1,4 +1,3 @@
-
 use std::vec;
 
 use crate::{
@@ -17,12 +16,9 @@ use std::{
 
 use std::env;
 
-
 static DB_NAME: &str = "roaddata";
 static NODES: &str = "nodes";
 static LINKS: &str = "links";
-
-
 
 
 pub(crate) fn get_links_query() -> Vec<Document> {
@@ -50,8 +46,6 @@ pub(crate) fn get_links_query() -> Vec<Document> {
         }
     }]
 }
-
-
 
 
 pub async fn get_links() -> Result<HashMap<String, RoadLink>, Box<dyn Error>> {

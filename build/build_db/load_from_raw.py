@@ -149,7 +149,7 @@ def attach_speedlimits(roadlink, speedlimit_collection):
                                "endposition" : limit_range[1],
                            }}
         link_speedlimits.append(speedlimit)
-    # print()
+        
     return link_speedlimits
 
     
@@ -266,8 +266,6 @@ def load_from_raw(raw_link_collection: collection.Collection,
 def parse_args():
     parser = argparse.ArgumentParser(description = "Loading raw segmented link sequenzes from NVDB")
     parser.add_argument("server", type = str, help = "hostname or ip-address")
-    # parser.add_argument("user", type = str, help = "MongoDB username")
-    # parser.add_argument("passwd", type = str, help = "MongoDB password")
     parser.add_argument("port", type = int, default = 27017, help = "port number of MongoDB instance")
     parser.add_argument("db_name", type = str, default = "roaddata", help = "name of database instance to use or create")
     parser.add_argument("raw_link_collection_name", type = str, default = "raw_links", help = "name of collection storing raw links")

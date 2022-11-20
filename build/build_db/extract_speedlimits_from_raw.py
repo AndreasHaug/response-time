@@ -9,9 +9,6 @@ import os
 def parse_args():
     parser = argparse.ArgumentParser(description = "Extracting speedlimits data from NVDB speedlimit raw data")
     parser.add_argument("server", type = str, help = "MongoDB hostname or ip address")
-    # parser.add_argument("user", type = str, help = "MongoDB username")
-    # parser.add_argument("passwd", type = str, help = "MongoDB password")
-    # parser.add_argument("rawspeedlimits_file_path", type = str, help = "path of folder containing json-data of speedlimits")
     parser.add_argument("port", type = int, default = 27017, help = "port number of MongoDB instance")
     parser.add_argument("db_name", type = str, default = "roaddata", help = "name of database instance to use or create")
     parser.add_argument("db_rawspeedlimits_collection_name", type = str,
@@ -73,7 +70,6 @@ def main():
 
     speedlimit_raw_collection = db[args.db_rawspeedlimits_collection_name]
     speedlimit_collection = db[args.speedlimit_collection_name]
-    # print("Extracting speedlimits")
     extract_speedlimits_from_raw(speedlimit_raw_collection, speedlimit_collection)
     
 main()

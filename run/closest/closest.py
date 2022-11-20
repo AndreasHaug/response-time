@@ -14,8 +14,6 @@ from uvicorn.main import print_version
 print("starting closest")
 print(os.environ.get("MONGO_USERNAME"))
 mongo_client: pymongo.MongoClient = pymongo.MongoClient(
-    # "localhost",
-    # "database",
     os.environ.get("MONGO_DB_CONNECTION"),
     27017,
     username = os.environ.get("MONGO_USERNAME"),
